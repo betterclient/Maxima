@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "maxima",
+  "version": "${version}",
+  "name": "Maxima",
+  "description": "Record your moments!",
+  "authors": ["BetterClient"],
+  "license": "MIT",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["io.github.betterclient.maxima.MaximaClient"],
+    "modmenu": [ "io.github.betterclient.maxima.compat.ModMenu" ]
+  },
+  "mixins": [
+    "maxima.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=${loader_version}",
+    "minecraft": "${minecraft_version}",
+    "fabric": "*"
+  },
+  "suggests": {
+    "modmenu": "*"
+  },
+  "accessWidener": "maxima.accesswidener",
+
+  "custom": {
+    "modmenu": {
+      "update_checker": false
+    }
+  }
+}

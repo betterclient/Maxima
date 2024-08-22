@@ -1,0 +1,10 @@
+{
+  "text.wait_for_gen": "Waiting for world generation. (%s)",
+  "text.recording": "Recording!",
+  "text.saving": "Saving: %s",
+  "text.only_render_on_menu": "You can only render when you aren't in game",
+  "text.recordings": "Recordings",
+  "text.join": "Join",
+  "text.delete": "Delete",
+  "key.maxima_start_stop": "Maxima Start/Stop Recording"
+}

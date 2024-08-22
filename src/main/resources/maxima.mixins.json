@@ -1,0 +1,20 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "io.github.betterclient.maxima.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "server.MixinChunkDataPacket",
+    "client.MixinClientWorld",
+    "client.MixinOptions",
+    "client.MixinGameMenuScreen",
+    "client.MixinInGameHud",
+    "client.MixinMinecraftClient"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "mixins": [
+    "server.MixinMinecraftServer"
+  ]
+}

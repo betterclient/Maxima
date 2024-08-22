@@ -1,0 +1,9 @@
+accessWidener v1 named
+accessible field net/minecraft/client/world/ClientChunkManager chunks Lnet/minecraft/client/world/ClientChunkManager$ClientChunkMap;
+accessible field net/minecraft/client/world/ClientChunkManager$ClientChunkMap chunks Ljava/util/concurrent/atomic/AtomicReferenceArray;
+accessible field net/minecraft/server/world/ServerWorld worldProperties Lnet/minecraft/world/level/ServerWorldProperties;
+accessible field net/minecraft/server/world/ServerWorld entityManager Lnet/minecraft/server/world/ServerEntityManager;
+accessible field net/minecraft/world/entity/SimpleEntityLookup index Lnet/minecraft/world/entity/EntityIndex;
+accessible field net/minecraft/world/entity/EntityIndex idToEntity Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+accessible method net/minecraft/client/gui/screen/world/CreateWorldScreen createLevel ()V
+accessible method net/minecraft/client/gui/screen/world/WorldCreator getWorldPreset (Lnet/minecraft/client/world/GeneratorOptionsHolder;Ljava/util/Optional;)Ljava/util/Optional;
