@@ -3,9 +3,18 @@ package io.github.betterclient.maxima;
 import io.github.betterclient.maxima.recording.MaximaRecording;
 import io.github.betterclient.maxima.recording.RecordChunk;
 import io.github.betterclient.maxima.recording.RecordingWorld;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.UnpooledByteBufAllocator;
+import io.netty.buffer.UnpooledUnsafeDirectByteBuf;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.packet.s2c.play.ChunkData;
+import net.minecraft.registry.DynamicRegistryManager;
 import net.minecraft.util.math.ChunkPos;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -104,7 +113,7 @@ public class MaximaClient implements ClientModInitializer {
                 JSONArray array = new JSONArray();
 
                 for (RecordingWorld world : this.recording.worlds) {
-                    if(world.chunks.isEmpty()) continue;
+                    if(world.chunkData.isEmpty()) continue;
 
                     array.put(saveWorld(world));
                     saveProgress = ((float) (this.recording.worlds.indexOf(world) + 1) / this.recording.worlds.size()) * 100;
@@ -126,34 +135,23 @@ public class MaximaClient implements ClientModInitializer {
         JSONObject obj = new JSONObject();
         JSONArray chunks = new JSONArray();
 
-        for (RecordChunk chunk1 : world.chunks.values()) {
+        int index = 0;
+        List<ChunkPos> poss = new ArrayList<>(world.chunkData.keySet());
+        for (ChunkData chunk1 : world.chunkData.values()) {
             JSONObject chunk = new JSONObject();
 
-            chunk.put("chunkX", chunk1.chunkX);
-            chunk.put("chunkZ", chunk1.chunkZ);
-            chunk.put("bottomY", chunk1.bottomY);
-            chunk.put("topY", chunk1.topY);
-            JSONArray blocks = getObjects(chunk1);
-
-            chunk.put("blocks", blocks);
+            chunk.put("x,z", poss.get(index).x + "," + poss.get(index).z);
+            chunk.put("sectionData", chunk1.getSectionsDataBuf().array());
+            chunk.put("heightMap", chunk1.getHeightmap().toString());
 
             chunks.put(chunk);
+            index++;
         }
 
         obj.put("tickCount", this.recording.worlds.indexOf(world));
         obj.put("chunks", chunks);
 
         return obj;
-    }
-
-    private JSONArray getObjects(RecordChunk chunk1) {
-        JSONArray blocks = new JSONArray();
-
-        for (RecordChunk.BlockRecord blockRecord : chunk1.record.values()) {
-            blocks.put(blockRecord.toString());
-        }
-
-        return blocks;
     }
 
     public void loadRecording(File file) {
@@ -189,7 +187,7 @@ public class MaximaClient implements ClientModInitializer {
             int index = obj.getInt("tickCount");
             JSONArray chunks = obj.getJSONArray("chunks");
 
-            world.chunks = parseChunks(chunks);
+            world.chunkData = parseChunks(chunks);
 
             worlds.set(index, world);
         }
@@ -197,26 +195,23 @@ public class MaximaClient implements ClientModInitializer {
         return worlds;
     }
 
-    private Map<ChunkPos, RecordChunk> parseChunks(JSONArray chunks) {
-        Map<ChunkPos, RecordChunk> chunks1 = new HashMap<>();
+    private Map<ChunkPos, ChunkData> parseChunks(JSONArray chunks) {
+        Map<ChunkPos, ChunkData> chunks1 = new HashMap<>();
 
         for (int i = 0; i < chunks.length(); i++) {
             JSONObject obj = chunks.getJSONObject(i);
-            RecordChunk chunk = new RecordChunk();
 
-            JSONArray blocks = obj.getJSONArray("blocks");
+            List<Integer> pos = Arrays.stream(obj.getString("x,z").split(",")).map(Integer::parseInt).toList();
+            ChunkPos position = new ChunkPos(pos.get(0), pos.get(1));
 
-            chunk.chunkX = obj.getInt("chunkX");
-            chunk.chunkZ = obj.getInt("chunkZ");
-            chunk.bottomY = obj.getInt("bottomY");
-            chunk.topY = obj.getInt("topY");
+            String nbtVal = obj.getString("");
+            byte[] sectionData = (byte[]) obj.get("sectionData");
 
-            for (int i1 = 0; i1 < blocks.length(); i1++) {
-                RecordChunk.BlockRecord block = RecordChunk.parse(blocks.getString(i1));
-                chunk.record.put(block.pos(), block);
-            }
+            ByteBuf yea = new UnpooledUnsafeDirectByteBuf(new UnpooledByteBufAllocator(true), 0, Integer.MAX_VALUE);
+            RegistryByteBuf rbb = new RegistryByteBuf(yea, DynamicRegistryManager.EMPTY);
+           // rbb.writeNbt(NbtCompound);
 
-            chunks1.put(new ChunkPos(chunk.chunkX, chunk.chunkZ), chunk);
+            //chunks1.put(position, new ChunkData(rbb, position.x, position.z));
         }
 
         return chunks1;

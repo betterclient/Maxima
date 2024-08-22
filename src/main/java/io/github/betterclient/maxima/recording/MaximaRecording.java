@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.world.WorldCreator;
 import net.minecraft.client.world.GeneratorOptionsHolder;
 import net.minecraft.entity.Entity;
+import net.minecraft.network.packet.s2c.play.ChunkData;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
@@ -112,7 +113,7 @@ public class MaximaRecording {
 
         long start = System.currentTimeMillis();
 
-        List<RecordChunk> chunks = new ArrayList<>(toLoad.worlds.getFirst().chunks.values().stream().toList());
+        /*List<RecordChunk> chunks = new ArrayList<>(toLoad.worlds.getFirst().chunks.values().stream().toList());
 
         for (RecordChunk chunk : chunks) {
             genProg = chunks.indexOf(chunk) + "/" + chunks.size();
@@ -134,7 +135,7 @@ public class MaximaRecording {
             chunkToReplace.setBlockState(new BlockPos(7, highestY + 2, 7), Blocks.TORCH.getDefaultState(), false);
 
             chunkToReplace.setBlockState(new BlockPos(7, highestY + 2, 7), Blocks.AIR.getDefaultState(), false);
-        }
+        }*/
 
         MaximaClient.LOGGER.info("Loaded world in: {} seconds", (System.currentTimeMillis() - start) / 1000f);
         generatingWorld = false;
@@ -146,34 +147,10 @@ public class MaximaRecording {
         shouldAddChunks = true;
     }
 
-    public void update(Chunk chunk) {
+    public void update(WorldChunk chunk) {
         if(MaximaClient.instance.isSaving) return;
 
-        RecordChunk chunk1 = latestChunks.get(chunk.getPos());
-        if(chunk1 != null) {
-            RecordChunk rc = new RecordChunk(MinecraftClient.getInstance().world.getChunk(chunk.getPos().x, chunk.getPos().z), chunk1);
-            this.worlds.getLast().chunks.remove(chunk.getPos());
-            this.worlds.getLast().chunks.put(chunk.getPos(), rc);
-
-            this.latestChunks.remove(chunk.getPos());
-            latestChunks.put(chunk.getPos(), chunk1.upgrade(rc));
-        } else {
-            RecordChunk last = this.worlds.getFirst().getChunk(chunk);
-            for (RecordingWorld recordingWorld : this.worlds.stream().filter(recordingWorld -> recordingWorld.getChunk(chunk) != null).toList()) {
-                if(last == null) {
-                    last = recordingWorld.getChunk(chunk);
-                } else {
-                    last = last.upgrade(recordingWorld.getChunk(chunk));
-                }
-            }
-
-            RecordChunk c = new RecordChunk(MinecraftClient.getInstance().world.getChunk(chunk.getPos().x, chunk.getPos().z), last);
-
-            this.worlds.getLast().chunks.remove(chunk.getPos());
-            this.worlds.getLast().chunks.put(chunk.getPos(), c);
-
-            this.latestChunks.remove(chunk.getPos());
-            this.latestChunks.put(chunk.getPos(), Objects.requireNonNullElse(last, c).upgrade(c));
-        }
+        this.worlds.getLast().chunkData.remove(chunk.getPos());
+        this.worlds.getLast().chunkData.put(chunk.getPos(), new ChunkData(chunk));
     }
 }
