@@ -9,7 +9,7 @@
   "environment": "client",
   "entrypoints": {
     "client": ["io.github.betterclient.maxima.MaximaClient"],
-    "modmenu": [ "io.github.betterclient.maxima.compat.ModMenu" ]
+    "modmenu": [ "io.github.betterclient.maxima.util.ModMenu" ]
   },
   "mixins": [
     "maxima.mixins.json"

@@ -1,8 +1,9 @@
 package io.github.betterclient.maxima.mixin.client;
 
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.MaximaKeyBinding;
+import io.github.betterclient.maxima.keybinds.MaximaKeyBinding;
 import io.github.betterclient.maxima.recording.MaximaRecording;
+import io.github.betterclient.maxima.util.RecordingSaver;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -46,7 +47,7 @@ public class MixinMinecraftClient {
                 MaximaClient.instance.recording = new MaximaRecording();
             } else {
                 try {
-                    MaximaClient.instance.saveRecording();
+                    RecordingSaver.saveRecording();
                 } catch (IOException e) {
                     throw new RuntimeException("Failed to save recording!", e);
                 }

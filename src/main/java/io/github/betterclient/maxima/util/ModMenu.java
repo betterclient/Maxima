@@ -1,4 +1,4 @@
-package io.github.betterclient.maxima.compat;
+package io.github.betterclient.maxima.util;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;

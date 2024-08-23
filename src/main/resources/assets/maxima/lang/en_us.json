@@ -6,5 +6,8 @@
   "text.recordings": "Recordings",
   "text.join": "Join",
   "text.delete": "Delete",
-  "key.maxima_start_stop": "Maxima Start/Stop Recording"
+  "key.maxima_start_stop": "Maxima Start/Stop Recording",
+  "text.presstogo": "Press \"%s\" to go to another tick!",
+  "key.maxima_gotick": "Go to Tick",
+  "key.categories.maxima_keys": "Maxima Playback Keys"
 }

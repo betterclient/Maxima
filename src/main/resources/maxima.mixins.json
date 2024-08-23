@@ -4,17 +4,21 @@
   "package": "io.github.betterclient.maxima.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
-    "server.MixinChunkDataPacket",
+    "client.rendering.MixinChunkRenderingDataPreparer",
     "client.MixinClientWorld",
-    "client.MixinOptions",
-    "client.MixinGameMenuScreen",
-    "client.MixinInGameHud",
-    "client.MixinMinecraftClient"
+    "client.rendering.MixinGameMenuScreen",
+    "client.rendering.MixinInGameHud",
+    "client.ops.MixinKeybinding",
+    "client.MixinMinecraftClient",
+    "client.ops.MixinOptions"
   ],
   "injectors": {
     "defaultRequire": 1
   },
   "mixins": [
+    "MixinLongOpenHashSet_SetIterator",
+    "server.MixinChunkData",
+    "server.MixinChunkDataPacket",
     "server.MixinMinecraftServer"
   ]
 }

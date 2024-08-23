@@ -1,6 +1,7 @@
-package io.github.betterclient.maxima.mixin.client;
+package io.github.betterclient.maxima.mixin.client.ops;
 
-import io.github.betterclient.maxima.MaximaKeyBinding;
+import io.github.betterclient.maxima.keybinds.GoToTickBind;
+import io.github.betterclient.maxima.keybinds.MaximaKeyBinding;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.GameOptions;
 import net.minecraft.client.option.KeyBinding;
@@ -22,5 +23,6 @@ public class MixinOptions {
     @Inject(method = "<init>", at = @At("RETURN"))
     public void onInit(MinecraftClient client, File optionsFile, CallbackInfo ci) {
         this.allKeys = ArrayUtils.add(allKeys, new MaximaKeyBinding());
+        this.allKeys = ArrayUtils.add(allKeys, new GoToTickBind());
     }
 }

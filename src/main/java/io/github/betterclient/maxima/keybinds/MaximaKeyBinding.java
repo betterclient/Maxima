@@ -1,5 +1,6 @@
-package io.github.betterclient.maxima;
+package io.github.betterclient.maxima.keybinds;
 
+import io.github.betterclient.maxima.MaximaClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
 

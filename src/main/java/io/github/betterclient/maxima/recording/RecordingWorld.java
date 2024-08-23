@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class RecordingWorld {
     public Map<ChunkPos, ChunkData> chunkData = new HashMap<>();
+    public Map<ChunkPos, ReadableChunkData> readData = new HashMap<>();
     public MaximaRecording recording;
 
     public RecordingWorld(MaximaRecording recording, boolean isFirst) {
