@@ -111,6 +111,7 @@ public class RecordingEntity {
         if (data.length == 1) return null;
 
         NbtCompound comp = NbtCompound.TYPE.read(new DataInputStream(new ByteArrayInputStream(data)), NbtSizeTracker.ofUnlimitedBytes());
+        if (!comp.contains("NAME_PLAYER")) return null;
 
         OtherClientPlayerEntity e = new OtherClientPlayerEntity(world, new GameProfile(comp.getUuid("UUID"), comp.getString("NAME_PLAYER")));
         e.readNbt(comp);

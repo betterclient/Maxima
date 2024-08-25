@@ -115,7 +115,10 @@ public class WorldGeneration {
 
                             if(e == null) continue;
                             if(!world.spawnEntity(e)) {
-                                MinecraftClient.getInstance().world.addEntity(recordingEntity.generate(MinecraftClient.getInstance().world));
+                                e = recordingEntity.generate(MinecraftClient.getInstance().world);
+                                if (e == null) continue;
+
+                                MinecraftClient.getInstance().world.addEntity(e);
                             }
                         } catch (IOException e) {
                             throw new RuntimeException(e);
