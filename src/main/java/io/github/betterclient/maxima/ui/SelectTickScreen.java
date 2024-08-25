@@ -1,16 +1,42 @@
 package io.github.betterclient.maxima.ui;
 
+import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.MaximaRecording;
+import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
+import java.io.IOException;
+
 import static io.github.betterclient.maxima.recording.MaximaRecording.*;
 import static io.github.betterclient.maxima.util.recording.RecordingRenderer.*;
 
 public class SelectTickScreen extends Screen {
+    public static long lastTime = 0;
     private boolean isHold = false;
+    public static int interpolation = 0;
+    private static final Runnable interpolationThread = () -> {
+        lastTime = System.currentTimeMillis();
+        while (!isPaused) {
+            Thread.onSpinWait();
+
+            if (System.currentTimeMillis() > lastTime + ((50 / MaximaClient.OP_interpolationAmount) - 1)) {
+                lastTime = System.currentTimeMillis();
+
+                try {
+                    WorldGeneration.interpolateAll(++interpolation);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+                if (interpolation == MaximaClient.OP_interpolationAmount) {
+                    interpolation = 0;
+                }
+            }
+        }
+    };
 
     public SelectTickScreen() {
         super(Text.of(""));
@@ -29,12 +55,16 @@ public class SelectTickScreen extends Screen {
             isPaused = true;
         }
         if (button == 0 && basicCollisionCheck(mouseX, mouseY, 10, height - 115, 26, height - 99)) {
-            isPaused = !isPaused;
+            synchronized (new Object()) {
+                isPaused = !isPaused;
+            }
 
             if (!isPaused) {
                 MaximaRecording.lastPauseTime = 0;
                 if (currentTick == loadedRecording.tickCount)
                     currentTick = 0;
+
+                new Thread(interpolationThread).start();
             }
         }
 

@@ -17,7 +17,7 @@ public class MaximaRecording {
     public static String genProg = "";
     public static int currentTick = 0;
     public static BlockPos lastGenPos;
-    public static boolean isPaused = true;
+    public static volatile boolean isPaused = true;
     public static long lastPauseTime = 0;
 
     public List<RecordingWorld> worlds = new ArrayList<>();

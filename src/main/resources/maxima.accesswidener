@@ -11,3 +11,4 @@ accessible method net/minecraft/network/packet/s2c/play/ChunkDataS2CPacket <init
 accessible field net/minecraft/client/world/ClientWorld entityList Lnet/minecraft/world/EntityList;
 accessible field net/minecraft/world/EntityList entities Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
 accessible method net/minecraft/entity/EntityType register (Ljava/lang/String;Lnet/minecraft/entity/EntityType$Builder;)Lnet/minecraft/entity/EntityType;
+accessible field net/minecraft/entity/LimbAnimator pos F

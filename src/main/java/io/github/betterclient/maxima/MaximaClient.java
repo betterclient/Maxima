@@ -17,6 +17,7 @@ import java.util.*;
 public class MaximaClient implements ClientModInitializer {
     public static int OP_key = GLFW.GLFW_KEY_F4;
     public static int OP_keyGoTick = GLFW.GLFW_KEY_G;
+    public static int OP_interpolationAmount = 3;
 
     public static final Logger LOGGER = LogManager.getLogger("Maxima");
     public static MaximaClient instance;
