@@ -1,14 +1,16 @@
-package io.github.betterclient.maxima.util;
+package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.MaximaRecording;
 import io.github.betterclient.maxima.recording.ReadableChunkData;
+import io.github.betterclient.maxima.recording.RecordingEntity;
 import io.github.betterclient.maxima.recording.RecordingWorld;
 import net.minecraft.util.math.ChunkPos;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
@@ -22,6 +24,7 @@ public class RecordingLoader {
             ZipFile f = new ZipFile(file);
 
             parseWorlds(f, recording);
+            parseEntities(f, recording);
 
             f.close();
             LOGGER.info("Loaded {}!", file.getName().replace(".mxr", ""));
@@ -31,6 +34,32 @@ public class RecordingLoader {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static void parseEntities(ZipFile file, MaximaRecording recording) throws IOException {
+        var entries = file.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+
+            if (!entry.getName().startsWith("entity/") || entry.isDirectory()) continue;
+            byte[] data = readAndClose(file.getInputStream(entry));
+            parseEntity(entry.getName(), data, recording);
+        }
+    }
+
+    private static void parseEntity(String name, byte[] data, MaximaRecording recording) {
+        String trimmed = name.substring(name.indexOf("/") + 1, name.lastIndexOf("."));
+        String[] parts = trimmed.split("/");
+        int tick = Integer.parseInt(parts[0]);
+
+        if(recording.entities.size() - 1 < tick) {
+            recording.entities.add(new ArrayList<>());
+        }
+
+        RecordingEntity entity = new RecordingEntity(data);
+        recording.entities.getLast().add(entity);
+        entity.uuid = parts[1];
+        entity.isPlayer = name.endsWith("P");
     }
 
     private static void parseWorlds(ZipFile file, MaximaRecording recording) throws IOException {

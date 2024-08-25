@@ -7,6 +7,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
 import static io.github.betterclient.maxima.recording.MaximaRecording.*;
+import static io.github.betterclient.maxima.util.recording.RecordingRenderer.*;
 
 public class SelectTickScreen extends Screen {
     private boolean isHold = false;
@@ -30,7 +31,11 @@ public class SelectTickScreen extends Screen {
         if (button == 0 && basicCollisionCheck(mouseX, mouseY, 10, height - 115, 26, height - 99)) {
             isPaused = !isPaused;
 
-            if (!isPaused) MaximaRecording.lastPauseTime = 0;
+            if (!isPaused) {
+                MaximaRecording.lastPauseTime = 0;
+                if (currentTick == loadedRecording.tickCount)
+                    currentTick = 0;
+            }
         }
 
         return super.mouseClicked(mouseX, mouseY, button);

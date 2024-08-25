@@ -3,7 +3,7 @@ package io.github.betterclient.maxima.mixin.client;
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.keybinds.MaximaKeyBinding;
 import io.github.betterclient.maxima.recording.MaximaRecording;
-import io.github.betterclient.maxima.util.RecordingSaver;
+import io.github.betterclient.maxima.util.recording.RecordingSaver;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.world.ClientWorld;
@@ -27,6 +27,13 @@ public class MixinMinecraftClient {
         if(this.world == null || this.player == null || !MaximaClient.instance.isRecording || MaximaClient.instance.recording == null) return;
 
         MaximaClient.instance.recording.tick();
+    }
+
+    @Inject(method = "tick", at = @At("RETURN"))
+    public void tickReturn(CallbackInfo ci) {
+        if(this.world == null || this.player == null || !MaximaClient.instance.isRecording || MaximaClient.instance.recording == null) return;
+
+        MaximaClient.instance.recording.tickEntities();
     }
 
     @Inject(method = "stop", at = @At("HEAD"))

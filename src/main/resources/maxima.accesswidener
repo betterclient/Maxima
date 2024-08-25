@@ -8,3 +8,6 @@ accessible field net/minecraft/world/entity/EntityIndex idToEntity Lit/unimi/dsi
 accessible method net/minecraft/client/gui/screen/world/CreateWorldScreen createLevel ()V
 accessible method net/minecraft/client/gui/screen/world/WorldCreator getWorldPreset (Lnet/minecraft/client/world/GeneratorOptionsHolder;Ljava/util/Optional;)Ljava/util/Optional;
 accessible method net/minecraft/network/packet/s2c/play/ChunkDataS2CPacket <init> (Lnet/minecraft/network/RegistryByteBuf;)V
+accessible field net/minecraft/client/world/ClientWorld entityList Lnet/minecraft/world/EntityList;
+accessible field net/minecraft/world/EntityList entities Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
+accessible method net/minecraft/entity/EntityType register (Ljava/lang/String;Lnet/minecraft/entity/EntityType$Builder;)Lnet/minecraft/entity/EntityType;

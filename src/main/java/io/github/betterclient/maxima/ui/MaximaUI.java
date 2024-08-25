@@ -1,6 +1,6 @@
 package io.github.betterclient.maxima.ui;
 
-import io.github.betterclient.maxima.util.RecordingLoader;
+import io.github.betterclient.maxima.util.recording.RecordingLoader;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;

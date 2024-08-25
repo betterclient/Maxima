@@ -1,7 +1,7 @@
 package io.github.betterclient.maxima.mixin.client.rendering;
 
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.recording.MaximaRecording;
+import io.github.betterclient.maxima.util.recording.RecordingRenderer;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.world.level.storage.LevelStorage;
@@ -57,7 +57,8 @@ public class MixinGameMenuScreen {
             }
 
             MaximaClient.instance.isPlayback = false;
-            MaximaRecording.isFirst = true;
+            RecordingRenderer.isFirst = true;
+            RecordingRenderer.firstGen = true;
         }
     }
 }
