@@ -1,7 +1,7 @@
 package io.github.betterclient.maxima.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.util.recording.RecordingRenderer;
+import io.github.betterclient.maxima.ui.RecordingRenderer;
 import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;

@@ -2,21 +2,20 @@ package io.github.betterclient.maxima.ui;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.MaximaRecording;
-import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
-import java.io.IOException;
-
 import static io.github.betterclient.maxima.recording.MaximaRecording.*;
-import static io.github.betterclient.maxima.util.recording.RecordingRenderer.*;
+import static io.github.betterclient.maxima.ui.RecordingRenderer.*;
 
 public class SelectTickScreen extends Screen {
     public static long lastTime = 0;
     private boolean isHold = false;
     public static int interpolation = 0;
+    public static boolean wantsInterp = false;
+    public static int wantedInterp = 0;
     private static final Runnable interpolationThread = () -> {
         lastTime = System.currentTimeMillis();
         while (!isPaused) {
@@ -24,12 +23,9 @@ public class SelectTickScreen extends Screen {
 
             if (System.currentTimeMillis() > lastTime + ((50 / MaximaClient.OP_interpolationAmount) - 1)) {
                 lastTime = System.currentTimeMillis();
-
-                try {
-                    WorldGeneration.interpolateAll(++interpolation);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+                wantsInterp = true;
+                wantedInterp = interpolation+1;
+                interpolation++;
 
                 if (interpolation == MaximaClient.OP_interpolationAmount) {
                     interpolation = 0;

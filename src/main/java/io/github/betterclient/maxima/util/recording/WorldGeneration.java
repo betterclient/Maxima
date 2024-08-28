@@ -11,6 +11,9 @@ import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.world.WorldCreator;
 import net.minecraft.client.world.GeneratorOptionsHolder;
 import net.minecraft.entity.Entity;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -31,24 +34,33 @@ public class WorldGeneration {
     private static int timeTick = 0;
 
     public static void interpolateAll(int interpolationTick) throws IOException {
-        List<RecordingEntity> start = MaximaRecording.loadedRecording.entities.get(interpolationTick);
-        List<RecordingEntity> end = MaximaRecording.loadedRecording.entities.get(interpolationTick+1);
+        if (MaximaClient.OP_interpolationAmount == 0) return;
+        if (MaximaRecording.currentTick + 1 >= MaximaRecording.loadedRecording.entities.size()) return;
+
+        List<RecordingEntity> start = MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick);
+        List<RecordingEntity> end = MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick+1);
         List<RecordingEntity> interpolationResult = new ArrayList<>();
-        List<String> interpolationUUIDS = new ArrayList<>();
 
         for (RecordingEntity entity : end) {
             RecordingEntity fromStart = start.stream().filter(recordingEntity -> recordingEntity.uuid.equals(entity.uuid)).filter(recordingEntity -> recordingEntity.getPText().equals(entity.getPText())).findFirst().orElse(null);
             if (fromStart == null) continue;
 
-            interpolationResult.add(EntityInterpolation.interpolateStep(fromStart.generate(), entity.generate(), interpolationTick, MaximaClient.OP_interpolationAmount));
-            interpolationUUIDS.add(interpolationResult.getLast().uuid);
+            interpolationResult.add(EntityInterpolation.interpolateStep(fromStart, entity.generate(), interpolationTick, MaximaClient.OP_interpolationAmount));
         }
 
-        for (Entity entity : MinecraftClient.getInstance().world.entityList.entities.values().stream().toList()) {
-            if (interpolationUUIDS.contains(entity.getUuidAsString()) && MinecraftClient.getInstance().player != entity) {
-                RecordingEntity re = interpolationResult.get(interpolationUUIDS.indexOf(entity.getUuidAsString()));
-
-                re.apply(entity);
+        for (String string : LAST_GEN_UUIDS) {
+            for (RecordingEntity recordingEntity : interpolationResult) {
+                if (recordingEntity.uuid.equals(string)) {
+                    try {
+                        for (Entity entity : MinecraftClient.getInstance().world.entityList.entities.values().stream().toList()) {
+                            if (entity.getUuidAsString().equals(recordingEntity.uuid) && MinecraftClient.getInstance().player != entity) {
+                                recordingEntity.apply(entity);
+                            }
+                        }
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
             }
         }
     }
@@ -75,7 +87,10 @@ public class WorldGeneration {
 
                 //removed
                 LAST_GEN_UUIDS.stream().filter(string -> !currentUUIDS.contains(string)).forEach(string -> {
-                    world.getEntity(UUID.fromString(string)).remove(Entity.RemovalReason.DISCARDED);
+                    Entity myEnt = world.getEntity(UUID.fromString(string));
+                    if (myEnt == null) return;
+
+                    myEnt.remove(Entity.RemovalReason.DISCARDED);
                     currentApplied.add(string);
                 });
 
@@ -101,15 +116,7 @@ public class WorldGeneration {
                 for (RecordingEntity recordingEntity : recordingEntities) {
                     if (!currentApplied.contains(recordingEntity.uuid)) {
                         try {
-                            Entity e = recordingEntity.generate(world);
-
-                            if (e == null) continue;
-                            if (!world.spawnEntity(e)) {
-                                e = recordingEntity.generate(MinecraftClient.getInstance().world);
-                                if (e == null) continue;
-
-                                MinecraftClient.getInstance().world.addEntity(e);
-                            }
+                            spawn(world, recordingEntity);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
@@ -124,6 +131,18 @@ public class WorldGeneration {
         SelectTickScreen.interpolation = 0;
     }
 
+    private static void spawn(ServerWorld world, RecordingEntity recordingEntity) throws IOException {
+        Entity e = recordingEntity.generate(world);
+
+        if (e == null) return;
+        if (!world.spawnEntity(e)) {
+            e = recordingEntity.generate(MinecraftClient.getInstance().world);
+            if (e == null) return;
+
+            MinecraftClient.getInstance().world.addEntity(e);
+        }
+    }
+
     public static void generate() {
         if (MinecraftClient.getInstance().player == null) return;
         if (MinecraftClient.getInstance().world == null) return;
@@ -133,7 +152,6 @@ public class WorldGeneration {
         if (MaximaRecording.lastGenPos == null) MaximaRecording.lastGenPos = BlockPos.ORIGIN;
         else if (MaximaRecording.lastGenPos.equals(MinecraftClient.getInstance().player.getBlockPos())) return;
         else MaximaRecording.lastGenPos = MinecraftClient.getInstance().player.getBlockPos();
-        MaximaClient.LOGGER.info("Start worldgen!");
 
         MaximaRecording.generatingWorld = true;
         /*if(true) {
@@ -141,7 +159,6 @@ public class WorldGeneration {
             return;
         }*/
 
-        long start = System.currentTimeMillis();
         if (MaximaClient.instance.stopGeneration) return;
 
         Map<ChunkPos, ReadableChunkData> rd;
@@ -199,7 +216,6 @@ public class WorldGeneration {
             });
         }
 
-        MaximaClient.LOGGER.info("Loaded world in: {} seconds", (System.currentTimeMillis() - start) / 1000f);
         MaximaRecording.generatingWorld = false;
         timeTick++;
     }

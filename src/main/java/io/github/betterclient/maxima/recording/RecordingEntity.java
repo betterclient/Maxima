@@ -95,9 +95,6 @@ public class RecordingEntity {
     public static int PX, PY, PZ;
 
     public Entity generate(ServerWorld world) throws IOException {
-        if (data.length == 0) return null;
-        if (data.length == 1) return null;
-
         NbtCompound comp = generate();
         if (isPlayer) {//EntityType.PLAYER.create is a bit stubborn.
             MinecraftClient client = MinecraftClient.getInstance();

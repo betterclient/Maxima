@@ -1,10 +1,7 @@
 package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.recording.MaximaRecording;
-import io.github.betterclient.maxima.recording.ReadableChunkData;
-import io.github.betterclient.maxima.recording.RecordingEntity;
-import io.github.betterclient.maxima.recording.RecordingWorld;
+import io.github.betterclient.maxima.recording.*;
 import net.minecraft.util.math.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 
@@ -66,12 +63,12 @@ public class RecordingLoader {
 
         if (entity.isPlayer) {
             Pattern pattern = Pattern.compile("\\d+");
-            StringBuffer sb = getBuffer(pattern, entity);
-            entity.uuid = sb.toString();
+            entity.uuid = getBuffer(pattern, entity).toString();
             entity.updateUUID();
         }
     }
 
+    //Shuffle UUIDs
     private static @NotNull StringBuffer getBuffer(Pattern pattern, RecordingEntity entity) {
         Matcher matcher = pattern.matcher(entity.uuid);
         StringBuffer sb = new StringBuffer();

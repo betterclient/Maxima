@@ -1,10 +1,10 @@
-package io.github.betterclient.maxima.util.recording;
+package io.github.betterclient.maxima.ui;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.keybinds.GoToTickBind;
 import io.github.betterclient.maxima.recording.MaximaRecording;
 import io.github.betterclient.maxima.recording.RecordingEntity;
-import io.github.betterclient.maxima.ui.SelectTickScreen;
+import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
 import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.client.MinecraftClient;
@@ -18,6 +18,7 @@ import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
 import net.minecraft.world.entity.SimpleEntityLookup;
 
+import java.io.IOException;
 import java.util.*;
 
 public class RecordingRenderer {
@@ -68,6 +69,15 @@ public class RecordingRenderer {
             MaximaRecording.isPaused = true;
             isFirst = false;
             MaximaRecording.lastPauseTime = 0;
+        }
+
+        if (SelectTickScreen.wantsInterp) {
+            SelectTickScreen.wantsInterp = false;
+            try {
+                WorldGeneration.interpolateAll(SelectTickScreen.wantedInterp);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
         if (regen) {
             MaximaRecording.generateWorld();
