@@ -12,3 +12,5 @@ accessible field net/minecraft/client/world/ClientWorld entityList Lnet/minecraf
 accessible field net/minecraft/world/EntityList entities Lit/unimi/dsi/fastutil/ints/Int2ObjectMap;
 accessible method net/minecraft/entity/EntityType register (Ljava/lang/String;Lnet/minecraft/entity/EntityType$Builder;)Lnet/minecraft/entity/EntityType;
 accessible field net/minecraft/entity/LimbAnimator pos F
+accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker
+accessible field net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker trackedSection Lnet/minecraft/util/math/ChunkSectionPos;

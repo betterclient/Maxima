@@ -9,6 +9,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
 import net.minecraft.nbt.NbtSizeTracker;
 import net.minecraft.client.world.ClientWorld;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -25,6 +27,10 @@ public class RecordingEntity {
     public int entityID = 0;
     public String uuid = "helloworld";
     public boolean isPlayer = false;
+
+    public NbtCompound leftLeg = new NbtCompound();
+    public NbtCompound rightLeg = new NbtCompound();
+
     private NbtCompound generated = null;
 
     public RecordingEntity(Entity entity) {
@@ -46,14 +52,19 @@ public class RecordingEntity {
         uuid = entity.getUuidAsString();
 
         try {
-            ByteArrayOutputStream want = new ByteArrayOutputStream();
-            comp.write(new DataOutputStream(want));
-            data = want.toByteArray();
-            want.close();
+            data = toByteArray(comp);
         } catch (IOException e) {
             MaximaClient.LOGGER.error("Something went terribly wrong", e);
             throw new RuntimeException("This should technically never happen. Did you break the jvm by chance?", e);
         }
+    }
+
+    public byte[] toByteArray(NbtCompound comp) throws IOException {
+        ByteArrayOutputStream want = new ByteArrayOutputStream();
+        comp.write(new DataOutputStream(want));
+        byte[] data = want.toByteArray();
+        want.close();
+        return data;
     }
 
     public RecordingEntity(NbtCompound from) {
@@ -74,6 +85,11 @@ public class RecordingEntity {
             generated = NbtCompound.TYPE.read(new DataInputStream(new ByteArrayInputStream(data)), NbtSizeTracker.ofUnlimitedBytes());
         }
 
+        if (generated.contains("LEFT_LEG")) {
+            leftLeg = generated.getCompound("LEFT_LEG");
+            rightLeg = generated.getCompound("RIGHT_LEG");
+        }
+
         return generated;
     }
 
@@ -85,10 +101,12 @@ public class RecordingEntity {
             pe.handSwingProgress = comp.getFloat("HAND_SWING_PROGRESS");
             pe.handSwingTicks = comp.getInt("HAND_SWING_TICKS");
             pe.limbAnimator.pos = comp.getFloat("LIMB_ANIMATOR_POS");
-
+            pe.limbAnimator.setSpeed(0);
             pe.preferredHand = Hand.MAIN_HAND;
         }
 
+        NbtList nbt = comp.getList("Motion", NbtElement.DOUBLE_TYPE);
+        entity.setVelocityClient(nbt.getDouble(0), nbt.getDouble(1), nbt.getDouble(2));
         entity.setUuid(UUID.fromString(this.uuid));
     }
 
@@ -107,7 +125,8 @@ public class RecordingEntity {
             return e;
         }
 
-        EntityType<? extends Entity> entityType = EntityType.get(comp.getString("id")).orElseThrow(NullPointerException::new);
+        EntityType<? extends Entity> entityType = EntityType.get(comp.getString("id")).orElse(null);
+        if (entityType == null) return null;
         Entity e = entityType.create(world);
         if (e == null) return null;
 
@@ -136,5 +155,14 @@ public class RecordingEntity {
 
     public void updateUUID() throws IOException {
         generate().putUuid("UUID", UUID.fromString(this.uuid));
+    }
+
+    public byte[] appendLegs() throws IOException {
+        NbtCompound comp = generate();
+
+        comp.put("LEFT_LEG", leftLeg);
+        comp.put("RIGHT_LEG", rightLeg);
+
+        return toByteArray(comp);
     }
 }

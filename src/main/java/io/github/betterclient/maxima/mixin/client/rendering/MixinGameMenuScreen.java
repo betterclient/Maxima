@@ -23,9 +23,6 @@ public class MixinGameMenuScreen {
 
     @Inject(method = "disconnect", at = @At("HEAD"))
     public void diconnect_head(CallbackInfo ci) {
-        if (FabricLoader.getInstance().isDevelopmentEnvironment())
-            System.exit(0);
-
         bl = MinecraftClient.getInstance().isInSingleplayer();
         if(bl) {
             wn = MinecraftClient.getInstance().getServer().getOverworld().worldProperties.getLevelName();

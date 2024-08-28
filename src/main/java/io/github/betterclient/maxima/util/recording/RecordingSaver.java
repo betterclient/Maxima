@@ -1,7 +1,6 @@
 package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.recording.MaximaRecording;
 import io.github.betterclient.maxima.recording.RecordingEntity;
 import io.github.betterclient.maxima.recording.RecordingWorld;
 import io.github.betterclient.maxima.util.ChunkInvoker;
@@ -14,7 +13,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipEntry;
@@ -47,15 +45,10 @@ public class RecordingSaver {
     }
 
     private static void saveEntities(ZipOutputStream zos) throws IOException {
-        Map<Integer, byte[]> lastValues = new HashMap<>();
-
         int count = 0;
         for (List<RecordingEntity> entity : MaximaClient.instance.recording.entities) {
             for (RecordingEntity recordingEntity : entity) {
-                if (lastValues.get(recordingEntity.entityID) != recordingEntity.data) {
-                    putEntity(zos, recordingEntity, count);
-                    lastValues.put(recordingEntity.entityID, recordingEntity.data);
-                }
+                putEntity(zos, recordingEntity, count);
             }
 
             count++;
@@ -64,7 +57,7 @@ public class RecordingSaver {
 
     private static void putEntity(ZipOutputStream zos, RecordingEntity entity, int count) throws IOException {
         zos.putNextEntry(new ZipEntry("entity/" + count + "/" + entity.uuid + ".nbt" + entity.getPText()));
-        zos.write(entity.data);
+        zos.write(entity.appendLegs());
         zos.closeEntry();
     }
 

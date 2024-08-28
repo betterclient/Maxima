@@ -4,6 +4,7 @@
   "package": "io.github.betterclient.maxima.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "client.MixinBipedEntityModel",
     "client.MixinClientPlayerNetworkHandler",
     "client.MixinClientWorld",
     "client.MixinMinecraftClient",
@@ -17,6 +18,7 @@
     "defaultRequire": 1
   },
   "mixins": [
+    "MixinInt2ObjectOpenHashMap_MapIterator",
     "MixinLongOpenHashSet_SetIterator",
     "server.MixinChunkData",
     "server.MixinChunkDataPacket",

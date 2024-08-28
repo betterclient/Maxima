@@ -11,9 +11,7 @@ import net.minecraft.client.gui.screen.world.CreateWorldScreen;
 import net.minecraft.client.gui.screen.world.WorldCreator;
 import net.minecraft.client.world.GeneratorOptionsHolder;
 import net.minecraft.entity.Entity;
-import net.minecraft.nbt.NbtCompound;
-import net.minecraft.nbt.NbtElement;
-import net.minecraft.nbt.NbtList;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
@@ -49,16 +47,29 @@ public class WorldGeneration {
         }
 
         for (String string : LAST_GEN_UUIDS) {
+            boolean done = false;
             for (RecordingEntity recordingEntity : interpolationResult) {
                 if (recordingEntity.uuid.equals(string)) {
                     try {
                         for (Entity entity : MinecraftClient.getInstance().world.entityList.entities.values().stream().toList()) {
                             if (entity.getUuidAsString().equals(recordingEntity.uuid) && MinecraftClient.getInstance().player != entity) {
                                 recordingEntity.apply(entity);
+                                done = true;
                             }
                         }
                     } catch (IOException e) {
                         throw new RuntimeException(e);
+                    }
+                }
+            }
+
+            if (!done) {
+                for (RecordingEntity entity : interpolationResult) {
+                    if (entity.uuid.equals(string)) {
+                        PlayerEntity pe = MinecraftClient.getInstance().world.getPlayerByUuid(UUID.fromString(string));
+                        if(pe == null) continue;
+
+                        entity.apply(pe);
                     }
                 }
             }
@@ -90,7 +101,7 @@ public class WorldGeneration {
                     Entity myEnt = world.getEntity(UUID.fromString(string));
                     if (myEnt == null) return;
 
-                    myEnt.remove(Entity.RemovalReason.DISCARDED);
+                    myEnt.remove(Entity.RemovalReason.KILLED);
                     currentApplied.add(string);
                 });
 
@@ -116,6 +127,21 @@ public class WorldGeneration {
                 for (RecordingEntity recordingEntity : recordingEntities) {
                     if (!currentApplied.contains(recordingEntity.uuid)) {
                         try {
+                            boolean applied = false;
+                            for (Entity entity : MinecraftClient.getInstance().world.entityList.entities.values().stream().toList()) {
+                                if (entity.getUuidAsString().equals(recordingEntity.uuid)) {
+                                    recordingEntity.apply(entity); //Added previously but somehow not applied?????
+                                    applied = true;
+                                }
+                            }
+                            if (applied) continue;
+                            else {
+                                PlayerEntity e = MinecraftClient.getInstance().world.getPlayerByUuid(UUID.fromString(recordingEntity.uuid));
+                                if (e != null) {
+                                    recordingEntity.apply(e); //Somehow still not applied?
+                                    continue;
+                                }
+                            }
                             spawn(world, recordingEntity);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
