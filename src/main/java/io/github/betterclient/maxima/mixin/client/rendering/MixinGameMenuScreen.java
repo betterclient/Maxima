@@ -53,8 +53,9 @@ public class MixinGameMenuScreen {
                 }
 
                 session.close();
-            } catch (IOException var8) {
-                MaximaClient.LOGGER.error(var8);
+                MaximaClient.instance.save(MaximaClient.config);
+            } catch (IOException | IllegalAccessException e) {
+                MaximaClient.LOGGER.error(e);
             }
 
             MaximaClient.instance.isPlayback = false;

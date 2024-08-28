@@ -32,7 +32,7 @@ public class WorldGeneration {
     private static int timeTick = 0;
 
     public static void interpolateAll(int interpolationTick) throws IOException {
-        if (MaximaClient.OP_interpolationAmount == 0) return;
+        if (MaximaClient.interpolation == 0) return;
         if (MaximaRecording.currentTick + 1 >= MaximaRecording.loadedRecording.entities.size()) return;
 
         List<RecordingEntity> start = MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick);
@@ -43,7 +43,7 @@ public class WorldGeneration {
             RecordingEntity fromStart = start.stream().filter(recordingEntity -> recordingEntity.uuid.equals(entity.uuid)).filter(recordingEntity -> recordingEntity.getPText().equals(entity.getPText())).findFirst().orElse(null);
             if (fromStart == null) continue;
 
-            interpolationResult.add(EntityInterpolation.interpolateStep(fromStart, entity.generate(), interpolationTick, MaximaClient.OP_interpolationAmount));
+            interpolationResult.add(EntityInterpolation.interpolateStep(fromStart, entity.generate(), interpolationTick, MaximaClient.interpolation));
         }
 
         for (String string : LAST_GEN_UUIDS) {

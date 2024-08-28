@@ -18,10 +18,7 @@ import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.Hand;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 public class RecordingEntity {
     public final byte[] data;
@@ -29,8 +26,15 @@ public class RecordingEntity {
     public String uuid = "helloworld";
     public boolean isPlayer = false;
 
-    public NbtCompound leftLeg = new NbtCompound();
-    public NbtCompound rightLeg = new NbtCompound();
+    public Map<String, RecordingPart> compMap = Map.of(
+            "LEFT_LEG", new RecordingPart(bpe -> bpe.leftLeg),
+            "RIGHT_LEG", new RecordingPart(bpe -> bpe.rightLeg),
+            "HEAD", new RecordingPart(bpe -> bpe.head),
+            "HAT", new RecordingPart(bpe -> bpe.hat),
+            "BODY", new RecordingPart(bpe -> bpe.body),
+            "RIGHT_ARM", new RecordingPart(bpe -> bpe.rightArm),
+            "LEFT_ARM", new RecordingPart(bpe -> bpe.leftArm)
+    );
 
     private NbtCompound generated = null;
 
@@ -89,9 +93,10 @@ public class RecordingEntity {
             generated = NbtCompound.TYPE.read(new DataInputStream(new ByteArrayInputStream(data)), NbtSizeTracker.ofUnlimitedBytes());
         }
 
-        if (generated.contains("LEFT_LEG")) {
-            leftLeg = generated.getCompound("LEFT_LEG");
-            rightLeg = generated.getCompound("RIGHT_LEG");
+        for (String key : generated.getKeys()) {
+            if (compMap.containsKey(key)) {
+                compMap.get(key).comp.copyFrom(generated.getCompound(key));
+            }
         }
 
         return generated;
@@ -168,10 +173,7 @@ public class RecordingEntity {
 
     public byte[] appendLegs() throws IOException {
         NbtCompound comp = generate();
-
-        comp.put("LEFT_LEG", leftLeg);
-        comp.put("RIGHT_LEG", rightLeg);
-
+        compMap.forEach((string, recordingPart) -> comp.put(string, recordingPart.comp));
         return toByteArray(comp);
     }
 }

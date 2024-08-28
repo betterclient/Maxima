@@ -6,14 +6,13 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
+import net.minecraft.client.render.entity.model.BipedEntityModel;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
-import org.spongepowered.asm.mixin.Unique;
 
 import java.io.*;
 import java.lang.reflect.Field;
@@ -24,7 +23,10 @@ import java.util.*;
 public class MaximaClient implements ClientModInitializer {
     public static int OP_key = GLFW.GLFW_KEY_F4;
     public static int OP_keyGoTick = GLFW.GLFW_KEY_G;
-    public static int OP_interpolationAmount = 3;
+    public static int OP_interpolationTick = 3;
+
+    //Seperate the used interpolation amount from the config one.
+    public static int interpolation = OP_interpolationTick;
 
     public static final Logger LOGGER = LogManager.getLogger("Maxima");
     public static MaximaClient instance;
@@ -78,6 +80,8 @@ public class MaximaClient implements ClientModInitializer {
             }
         }
 
+        interpolation = OP_interpolationTick;
+
         scanner.close();
     }
 
@@ -96,36 +100,42 @@ public class MaximaClient implements ClientModInitializer {
         fileOutputStream.close();
     }
 
-    public void handleSetAngles(LivingEntity livingEntity, ModelPart leftLeg, ModelPart rightLeg, float leaningPitch, float f, float g) {
+    public void handleSetAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g) {
         if (MaximaClient.instance.isPlayback) {
             for (RecordingEntity entity : MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick)) {
                 if (entity.uuid.equals(livingEntity.getUuidAsString()) || UUID.fromString(entity.uuid).equals(livingEntity.getUuid())) {
-                    loadCompound(leftLeg, entity.leftLeg);
-                    loadCompound(rightLeg, entity.rightLeg);
+                    loadAll(model, entity);
 
-                    if (entity.isPlayer && entity.leftLeg.isEmpty()) {
-                        this.calculateAngles(livingEntity, leftLeg, rightLeg, leaningPitch, f, g);
+                    if (entity.isPlayer && entity.compMap.get("LEFT_LEG").comp.isEmpty()) {
+                        this.calculateAngles(livingEntity, model, leaningPitch, f, g);
                     }
                 }
             }
         } else if (MaximaClient.instance.isRecording) {
             for (RecordingEntity entity : MaximaClient.instance.recording.entities.getLast()) {
                 if (entity.uuid.equals(livingEntity.getUuidAsString())) {
-                    entity.leftLeg = getCompound(leftLeg);
-                    entity.rightLeg = getCompound(rightLeg);
+                    saveAll(model, entity);
                 }
             }
         }
     }
 
-    private void calculateAngles(LivingEntity livingEntity, ModelPart leftLeg, ModelPart rightLeg, float leaningPitch, float f, float g) {
+    private void saveAll(BipedEntityModel<?> model, RecordingEntity entity) {
+        entity.compMap.forEach((string, recordingPart) -> saveCompound(recordingPart.comp, recordingPart.partFunction.apply(model)));
+    }
+
+    private void loadAll(BipedEntityModel<?> model, RecordingEntity entity) {
+        entity.compMap.forEach((string, recordingPart) -> loadCompound(recordingPart.partFunction.apply(model), recordingPart.comp));
+    }
+
+    private void calculateAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g) {
         if (livingEntity.hasPlayerRider()) {
-            rightLeg.pitch = -1.4137167F;
-            rightLeg.yaw = 0.31415927F;
-            rightLeg.roll = 0.07853982F;
-            leftLeg.pitch = -1.4137167F;
-            leftLeg.yaw = -0.31415927F;
-            leftLeg.roll = -0.07853982F;
+            model.rightLeg.pitch = -1.4137167F;
+            model.rightLeg.yaw = 0.31415927F;
+            model.rightLeg.roll = 0.07853982F;
+            model.leftLeg.pitch = -1.4137167F;
+            model.leftLeg.yaw = -0.31415927F;
+            model.leftLeg.roll = -0.07853982F;
         }
 
         float k = 1.0F;
@@ -140,35 +150,32 @@ public class MaximaClient implements ClientModInitializer {
             k = 1.0F;
         }
 
-        rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * g / k;
-        leftLeg.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 1.4F * g / k;
-        rightLeg.yaw = 0.005F;
-        leftLeg.yaw = -0.005F;
-        rightLeg.roll = 0.005F;
-        leftLeg.roll = -0.005F;
+        model.rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * g / k;
+        model.leftLeg.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 1.4F * g / k;
+        model.rightLeg.yaw = 0.005F;
+        model.leftLeg.yaw = -0.005F;
+        model.rightLeg.roll = 0.005F;
+        model.leftLeg.roll = -0.005F;
 
         if (livingEntity.isSneaking()) {
-            rightLeg.pivotZ = 4.0F;
-            leftLeg.pivotZ = 4.0F;
-            rightLeg.pivotY = 12.2F;
-            leftLeg.pivotY = 12.2F;
+            model.rightLeg.pivotZ = 4.0F;
+            model.leftLeg.pivotZ = 4.0F;
+            model.rightLeg.pivotY = 12.2F;
+            model.leftLeg.pivotY = 12.2F;
         } else {
-            rightLeg.pivotZ = 0.0F;
-            leftLeg.pivotZ = 0.0F;
-            rightLeg.pivotY = 12.0F;
-            leftLeg.pivotY = 12.0F;
+            model.rightLeg.pivotZ = 0.0F;
+            model.leftLeg.pivotZ = 0.0F;
+            model.rightLeg.pivotY = 12.0F;
+            model.leftLeg.pivotY = 12.0F;
         }
 
         if (leaningPitch > 0) {
-            leftLeg.pitch = MathHelper.lerp(leaningPitch, leftLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F + 3.1415927F));
-            rightLeg.pitch = MathHelper.lerp(leaningPitch, rightLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F));
+            model.leftLeg.pitch = MathHelper.lerp(leaningPitch, model.leftLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F + 3.1415927F));
+            model.rightLeg.pitch = MathHelper.lerp(leaningPitch, model.rightLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F));
         }
     }
 
-    @Unique
-    private @NotNull NbtCompound getCompound(ModelPart part) {
-        NbtCompound out = new NbtCompound();
-
+    private void saveCompound(NbtCompound out, ModelPart part) {
         out.putFloat("pivotX", part.pivotX);
         out.putFloat("pivotY", part.pivotY);
         out.putFloat("pivotZ", part.pivotZ);
@@ -180,11 +187,8 @@ public class MaximaClient implements ClientModInitializer {
         out.putFloat("zScale", part.zScale);
         out.putBoolean("visible", part.visible);
         out.putBoolean("hidden", part.hidden);
-
-        return out;
     }
 
-    @Unique
     private void loadCompound(ModelPart base, NbtCompound comp) {
         if (comp.isEmpty()) return;
 

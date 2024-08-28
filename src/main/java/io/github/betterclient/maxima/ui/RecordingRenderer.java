@@ -22,7 +22,9 @@ import java.io.IOException;
 import java.util.*;
 
 public class RecordingRenderer {
+    public static float speed = 1F;
     private static long lastT = 0;
+    public static int time = 50;
 
     public static double map(double val, double in_min, double in_max, double out_min, double out_max) {
         return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -47,7 +49,6 @@ public class RecordingRenderer {
     public static boolean isFirst = true;
     private static float totalTicks;
     private static boolean regen = false;
-    private static final Set<String> set = new HashSet<>();
     public static boolean firstGen = true;
 
     public static void render(DrawContext context, MaximaRecording loadedRecording) {
@@ -91,12 +92,13 @@ public class RecordingRenderer {
             regen = false;
         }
 
-        if (! MaximaRecording.isPaused) {
-            if (System.currentTimeMillis() >=  MaximaRecording.lastPauseTime) {
-                MaximaRecording.lastPauseTime = System.currentTimeMillis() + 50;
+        if (!MaximaRecording.isPaused) {
+            if (System.currentTimeMillis() >= MaximaRecording.lastPauseTime) {
+                MaximaRecording.lastPauseTime = System.currentTimeMillis() + RecordingRenderer.time;
                 MaximaRecording.currentTick++;
 
-                if (MaximaRecording.currentTick == loadedRecording.tickCount) {
+                if (MaximaRecording.currentTick >= loadedRecording.tickCount) {
+                    MaximaRecording.currentTick = loadedRecording.tickCount;
                     MaximaRecording.isPaused = true;
                     return;
                 }
@@ -120,7 +122,7 @@ public class RecordingRenderer {
             MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doTraderSpawning false");
 
         if (lastT < System.currentTimeMillis()) {
-            lastT = System.currentTimeMillis() + 1000;
+            lastT = System.currentTimeMillis() + (lastT == 0 ? 1000 : 10000);
             MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("kill @e[type=!player, tag=!maxima]");
         }
 

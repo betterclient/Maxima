@@ -3,7 +3,9 @@ package io.github.betterclient.maxima.ui;
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.MaximaRecording;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.BlockPos;
 
@@ -21,13 +23,13 @@ public class SelectTickScreen extends Screen {
         while (!isPaused) {
             Thread.onSpinWait();
 
-            if (System.currentTimeMillis() > lastTime + ((50 / MaximaClient.OP_interpolationAmount) - 1)) {
+            if (System.currentTimeMillis() > lastTime + ((RecordingRenderer.speed / MaximaClient.interpolation))) {
                 lastTime = System.currentTimeMillis();
                 wantsInterp = true;
                 wantedInterp = interpolation+1;
                 interpolation++;
 
-                if (interpolation == MaximaClient.OP_interpolationAmount) {
+                if (interpolation == MaximaClient.interpolation) {
                     interpolation = 0;
                 }
             }
@@ -76,7 +78,55 @@ public class SelectTickScreen extends Screen {
     }
 
     @Override
+    protected void init() {
+        ButtonWidget b05 = ButtonWidget.builder(Text.literal(".5"), button -> {
+            RecordingRenderer.speed = .5f;
+            RecordingRenderer.time = 100;
+            MaximaClient.interpolation=MaximaClient.OP_interpolationTick*2;
+            update(button);
+        }).dimensions(5, height - 150, 20, 20).build();
+
+        ButtonWidget b1 = ButtonWidget.builder(Text.literal("1"), button -> {
+            RecordingRenderer.speed = 1f;
+            RecordingRenderer.time = 50;
+            MaximaClient.interpolation=MaximaClient.OP_interpolationTick;
+            update(button);
+        }).dimensions(30, height - 150, 20, 20).build();
+
+        ButtonWidget b2 = ButtonWidget.builder(Text.literal("2"), button -> {
+            RecordingRenderer.speed = 2f;
+            RecordingRenderer.time = 25;
+            MaximaClient.interpolation= (int) (MaximaClient.OP_interpolationTick*.5f);
+            update(button);
+        }).dimensions(55, height - 150, 20, 20).build();
+
+        this.addDrawableChild(b05);
+        this.addDrawableChild(b1);
+        this.addDrawableChild(b2);
+
+        switch ((int) (speed * 10)) {
+            case 5 -> update(b05);
+            case 20 -> update(b2);
+            default -> update(b1);
+        }
+    }
+
+    private void update(ButtonWidget button) {
+        for (Drawable drawable : this.drawables) {
+            if (drawable instanceof ButtonWidget widget) {
+                widget.active = true;
+            }
+        }
+        button.active = false;
+        lastPauseTime = 0;
+    }
+
+    @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
+        for (Drawable drawable : this.drawables) {
+            drawable.render(context, mouseX, mouseY, delta);
+        }
+
         if (!isHold) return;
 
         int tickCount = (int) map(mouseX, 10, width - 10, 0, loadedRecording.tickCount);
