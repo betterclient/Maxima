@@ -22,6 +22,8 @@ import java.io.IOException;
 import java.util.*;
 
 public class RecordingRenderer {
+    private static long lastT = 0;
+
     public static double map(double val, double in_min, double in_max, double out_min, double out_max) {
         return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
     }
@@ -104,8 +106,6 @@ public class RecordingRenderer {
             }
         }
 
-        MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("kill @e[type=!player, tag=!maxima]");
-
         if(MinecraftClient.getInstance().interactionManager.getCurrentGameMode() != GameMode.SPECTATOR)
             MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamemode spectator");
         if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING))
@@ -118,6 +118,11 @@ public class RecordingRenderer {
             MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doFireTick false");
         if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING))
             MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doTraderSpawning false");
+
+        if (lastT < System.currentTimeMillis()) {
+            lastT = System.currentTimeMillis() + 1000;
+            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("kill @e[type=!player, tag=!maxima]");
+        }
 
         MinecraftClient.getInstance().inGameHud.getChatHud().clear(true);
 
