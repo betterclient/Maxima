@@ -20,6 +20,7 @@ import net.minecraft.util.Hand;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 public class RecordingEntity {
@@ -47,6 +48,9 @@ public class RecordingEntity {
             comp.putInt("HAND_SWING_TICKS", pe.handSwingTicks);
             comp.putFloat("LIMB_ANIMATOR_POS", pe.limbAnimator.pos);
         }
+
+        comp.putFloat("HEAD_YAW", entity.getHeadYaw());
+        comp.putFloat("BODY_YAW", entity.getBodyYaw());
 
         entityID = entity.getId();
         uuid = entity.getUuidAsString();
@@ -101,22 +105,27 @@ public class RecordingEntity {
             pe.handSwingProgress = comp.getFloat("HAND_SWING_PROGRESS");
             pe.handSwingTicks = comp.getInt("HAND_SWING_TICKS");
             pe.limbAnimator.pos = comp.getFloat("LIMB_ANIMATOR_POS");
-            pe.limbAnimator.setSpeed(0);
             pe.preferredHand = Hand.MAIN_HAND;
         }
 
         NbtList nbt = comp.getList("Motion", NbtElement.DOUBLE_TYPE);
         entity.setVelocityClient(nbt.getDouble(0), nbt.getDouble(1), nbt.getDouble(2));
+
+        entity.setHeadYaw(comp.getFloat("HEAD_YAW"));
+        entity.setBodyYaw(comp.getFloat("BODY_YAW"));
+
         entity.setUuid(UUID.fromString(this.uuid));
     }
 
-    public static int PX, PY, PZ;
+    public static int PX = 0, PY = 128, PZ = 0;
 
     public Entity generate(ServerWorld world) throws IOException {
         NbtCompound comp = generate();
         if (isPlayer) {//EntityType.PLAYER.create is a bit stubborn.
             MinecraftClient client = MinecraftClient.getInstance();
-            ServerPlayerEntity e = new ServerPlayerEntity(client.getServer(), world, new GameProfile(comp.getUuid("UUID"), comp.getString("NAME_PLAYER")), world.getRandomAlivePlayer().getClientOptions());
+            if (client.getServer() == null) return null;
+
+            ServerPlayerEntity e = new ServerPlayerEntity(client.getServer(), world, new GameProfile(comp.getUuid("UUID"), comp.getString("NAME_PLAYER")), Objects.requireNonNull(world.getRandomAlivePlayer()).getClientOptions());
             this.apply(e);
             e.networkHandler = new FakeNetworkHandler(e);
             PX = (int) e.getX();

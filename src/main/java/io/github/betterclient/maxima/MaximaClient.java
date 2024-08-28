@@ -7,7 +7,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
@@ -141,8 +140,8 @@ public class MaximaClient implements ClientModInitializer {
             k = 1.0F;
         }
 
-        rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F / k * .1f;
-        leftLeg.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 1.4F / k * .1f;
+        rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * g / k;
+        leftLeg.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 1.4F * g / k;
         rightLeg.yaw = 0.005F;
         leftLeg.yaw = -0.005F;
         rightLeg.roll = 0.005F;
@@ -161,8 +160,8 @@ public class MaximaClient implements ClientModInitializer {
         }
 
         if (leaningPitch > 0) {
-            leftLeg.pitch = MathHelper.lerp(leaningPitch, .0f, 0.2F * MathHelper.cos(f * 0.33333334F + 3.1415927F));
-            rightLeg.pitch = MathHelper.lerp(leaningPitch, .0f, 0.2F * MathHelper.cos(f * 0.33333334F));
+            leftLeg.pitch = MathHelper.lerp(leaningPitch, leftLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F + 3.1415927F));
+            rightLeg.pitch = MathHelper.lerp(leaningPitch, rightLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F));
         }
     }
 

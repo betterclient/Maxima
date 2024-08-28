@@ -104,16 +104,7 @@ public class RecordingRenderer {
             }
         }
 
-        ServerWorld w = MinecraftClient.getInstance().getServer().getOverworld();
-        ObjectSet<Int2ObjectMap.Entry<Entity>> set = ((SimpleEntityLookup<Entity>)w.entityManager.getLookup()).index.idToEntity.int2ObjectEntrySet();
-        for(Int2ObjectMap.Entry<Entity> e : set) {
-            Entity entity = e.getValue();
-            if(entity == null || Objects.equals(entity.getUuidAsString(), MinecraftClient.getInstance().player != null ? MinecraftClient.getInstance().player.getUuidAsString() : null)) continue;
-
-            if(!entity.getCommandTags().contains("maxima") && entity != MinecraftClient.getInstance().player && RecordingRenderer.set.add(entity.getUuidAsString())) {
-                MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("kill " + entity.getUuidAsString());
-            }
-        }
+        MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("kill @e[type=!player, tag=!maxima]");
 
         if(MinecraftClient.getInstance().interactionManager.getCurrentGameMode() != GameMode.SPECTATOR)
             MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamemode spectator");
