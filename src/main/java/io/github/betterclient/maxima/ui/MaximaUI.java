@@ -14,6 +14,7 @@ public class MaximaUI extends Screen {
 
     @Override
     protected void init() {
+        assert this.client != null;
         if(this.client.world != null) return;
 
         selectionWidget = this.addDrawableChild(new MaximaSelectionWidget(this.width, this.height - 110, 40, 30));
@@ -34,6 +35,7 @@ public class MaximaUI extends Screen {
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
         super.render(context, mouseX, mouseY, delta);
+        assert this.client != null;
         if(this.client.world != null) {
             context.drawCenteredTextWithShadow(this.textRenderer, Text.translatable("text.only_render_on_menu"), width / 2, (int) (height / 2d - 4.5), -1);
         } else {

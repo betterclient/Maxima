@@ -2,6 +2,7 @@ package io.github.betterclient.maxima.ui;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.MaximaRecording;
+import io.github.betterclient.maxima.util.TickTracker;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.Drawable;
 import net.minecraft.client.gui.screen.Screen;
@@ -18,20 +19,16 @@ public class SelectTickScreen extends Screen {
     public static int interpolation = 0;
     public static boolean wantsInterp = false;
     public static int wantedInterp = 0;
+
     private static final Runnable interpolationThread = () -> {
         lastTime = System.currentTimeMillis();
         while (!isPaused) {
-            Thread.onSpinWait();
+            interpolation = TickTracker.CURRENT_TRACKER.getInterpolationSteps();
+            wantedInterp = interpolation+1;
+            wantsInterp = true;
 
-            if (System.currentTimeMillis() > lastTime + ((RecordingRenderer.speed / MaximaClient.interpolation))) {
-                lastTime = System.currentTimeMillis();
-                wantsInterp = true;
-                wantedInterp = interpolation+1;
-                interpolation++;
-
-                if (interpolation == MaximaClient.interpolation) {
-                    interpolation = 0;
-                }
+            if (interpolation >= MaximaClient.interpolation) {
+                interpolation = 0;
             }
         }
     };
@@ -55,6 +52,7 @@ public class SelectTickScreen extends Screen {
         if (button == 0 && basicCollisionCheck(mouseX, mouseY, 10, height - 115, 26, height - 99)) {
             synchronized (new Object()) {
                 isPaused = !isPaused;
+                TickTracker.CURRENT_TRACKER.setLastTick();
             }
 
             if (!isPaused) {
@@ -80,23 +78,17 @@ public class SelectTickScreen extends Screen {
     @Override
     protected void init() {
         ButtonWidget b05 = ButtonWidget.builder(Text.literal(".5"), button -> {
-            RecordingRenderer.speed = .5f;
-            RecordingRenderer.time = 100;
-            MaximaClient.interpolation=MaximaClient.OP_interpolationTick*2;
+            TickTracker.S05.setCurrent();
             update(button);
         }).dimensions(5, height - 150, 20, 20).build();
 
         ButtonWidget b1 = ButtonWidget.builder(Text.literal("1"), button -> {
-            RecordingRenderer.speed = 1f;
-            RecordingRenderer.time = 50;
-            MaximaClient.interpolation=MaximaClient.OP_interpolationTick;
+            TickTracker.S1.setCurrent();
             update(button);
         }).dimensions(30, height - 150, 20, 20).build();
 
         ButtonWidget b2 = ButtonWidget.builder(Text.literal("2"), button -> {
-            RecordingRenderer.speed = 2f;
-            RecordingRenderer.time = 25;
-            MaximaClient.interpolation= (int) (MaximaClient.OP_interpolationTick*.5f);
+            TickTracker.S2.setCurrent();
             update(button);
         }).dimensions(55, height - 150, 20, 20).build();
 
@@ -104,7 +96,7 @@ public class SelectTickScreen extends Screen {
         this.addDrawableChild(b1);
         this.addDrawableChild(b2);
 
-        switch ((int) (speed * 10)) {
+        switch ((int) (TickTracker.CURRENT_TRACKER.interpolationAmount * 10)) {
             case 5 -> update(b05);
             case 20 -> update(b2);
             default -> update(b1);

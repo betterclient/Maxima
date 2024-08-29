@@ -9,12 +9,13 @@ import net.minecraft.text.Text;
 
 import java.io.File;
 import java.text.DecimalFormat;
+import java.util.Objects;
 
 public class MaximaSelectionWidget extends AlwaysSelectedEntryListWidget<MaximaSelectionWidget.Entry> {
     public MaximaSelectionWidget(int i, int j, int k, int l) {
         super(MinecraftClient.getInstance(), i, j, k, l);
 
-        for (File file : MaximaClient.recordings.listFiles()) {
+        for (File file : Objects.requireNonNull(MaximaClient.recordings.listFiles())) {
             this.addEntry(new Entry(file));
         }
     }

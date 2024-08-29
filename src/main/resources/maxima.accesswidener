@@ -15,3 +15,4 @@ accessible field net/minecraft/entity/LimbAnimator pos F
 accessible class net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker
 accessible field net/minecraft/server/world/ServerChunkLoadingManager$EntityTracker trackedSection Lnet/minecraft/util/math/ChunkSectionPos;
 accessible field net/minecraft/client/gui/screen/Screen drawables Ljava/util/List;
+accessible method net/minecraft/client/gui/screen/Screen addDrawableChild (Lnet/minecraft/client/gui/Element;)Lnet/minecraft/client/gui/Element;

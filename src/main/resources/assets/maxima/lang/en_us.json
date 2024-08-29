@@ -9,5 +9,7 @@
   "key.maxima_start_stop": "Maxima Start/Stop Recording",
   "text.presstogo": "Press \"%s\" to go to another tick!",
   "key.maxima_gotick": "Go to Tick",
-  "key.categories.maxima_keys": "Maxima Playback Keys"
+  "key.categories.maxima_keys": "Maxima Playback Keys",
+  "text.interpolation": "Entity FPS",
+  "text.off": "Disabled"
 }

@@ -4,27 +4,25 @@ import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.keybinds.GoToTickBind;
 import io.github.betterclient.maxima.recording.MaximaRecording;
 import io.github.betterclient.maxima.recording.RecordingEntity;
+import io.github.betterclient.maxima.util.TickTracker;
 import io.github.betterclient.maxima.util.recording.WorldGeneration;
-import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
-import it.unimi.dsi.fastutil.objects.ObjectSet;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
-import net.minecraft.entity.Entity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.GameMode;
 import net.minecraft.world.GameRules;
-import net.minecraft.world.entity.SimpleEntityLookup;
 
 import java.io.IOException;
 import java.util.*;
 
 public class RecordingRenderer {
-    public static float speed = 1F;
     private static long lastT = 0;
-    public static int time = 50;
+    public static boolean isFirst = true;
+    private static float totalTicks;
+    private static boolean regen = false;
+    public static boolean firstGen = true;
 
     public static double map(double val, double in_min, double in_max, double out_min, double out_max) {
         return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
@@ -46,11 +44,6 @@ public class RecordingRenderer {
         return mouseX >= x & mouseX <= endX & mouseY >= y & mouseY <= endY;
     }
 
-    public static boolean isFirst = true;
-    private static float totalTicks;
-    private static boolean regen = false;
-    public static boolean firstGen = true;
-
     public static void render(DrawContext context, MaximaRecording loadedRecording) {
         if(isFirst) {
             totalTicks = loadedRecording.tickCount / 20F;
@@ -65,7 +58,7 @@ public class RecordingRenderer {
                 @Override
                 public void run() {
                     if (MaximaClient.instance.isPlayback)
-                        MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("tick freeze");
+                        Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("tick freeze");
                 }
             }, 2000L);
 
@@ -87,14 +80,13 @@ public class RecordingRenderer {
 
             if (firstGen) {
                 firstGen = false;
-                MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("tp " + RecordingEntity.PX + " " + RecordingEntity.PY  + " " + RecordingEntity.PZ);
+                Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("tp " + RecordingEntity.PX + " " + RecordingEntity.PY  + " " + RecordingEntity.PZ);
             }
             regen = false;
         }
 
         if (!MaximaRecording.isPaused) {
-            if (System.currentTimeMillis() >= MaximaRecording.lastPauseTime) {
-                MaximaRecording.lastPauseTime = System.currentTimeMillis() + RecordingRenderer.time;
+            for (int i = 0; i < TickTracker.CURRENT_TRACKER.getTicksToStep(); i++) {
                 MaximaRecording.currentTick++;
 
                 if (MaximaRecording.currentTick >= loadedRecording.tickCount) {
@@ -104,26 +96,28 @@ public class RecordingRenderer {
                 }
 
                 MaximaRecording.lastGenPos = BlockPos.ORIGIN;
-                MaximaRecording.generateWorld();
             }
+
+            MaximaRecording.generateWorld();
         }
 
+        assert MinecraftClient.getInstance().interactionManager != null;
         if(MinecraftClient.getInstance().interactionManager.getCurrentGameMode() != GameMode.SPECTATOR)
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamemode spectator");
-        if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING))
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doMobSpawning false");
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("gamemode spectator");
+        if(Objects.requireNonNull(MinecraftClient.getInstance().getServer()).getGameRules().getBoolean(GameRules.DO_MOB_SPAWNING))
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("gamerule doMobSpawning false");
         if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_MOB_LOOT))
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doMobLoot false");
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("gamerule doMobLoot false");
         if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_ENTITY_DROPS))
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doEntityDrops false");
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("gamerule doEntityDrops false");
         if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_FIRE_TICK))
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doFireTick false");
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("gamerule doFireTick false");
         if(MinecraftClient.getInstance().getServer().getGameRules().getBoolean(GameRules.DO_TRADER_SPAWNING))
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("gamerule doTraderSpawning false");
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("gamerule doTraderSpawning false");
 
         if (lastT < System.currentTimeMillis()) {
             lastT = System.currentTimeMillis() + (lastT == 0 ? 1000 : 10000);
-            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("kill @e[type=!player, tag=!maxima]");
+            Objects.requireNonNull(MinecraftClient.getInstance().getNetworkHandler()).sendChatCommand("kill @e[type=!player, tag=!maxima]");
         }
 
         MinecraftClient.getInstance().inGameHud.getChatHud().clear(true);

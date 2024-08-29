@@ -7,8 +7,11 @@ import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
+import net.minecraft.client.render.entity.model.CrossbowPosing;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
+import net.minecraft.util.Arm;
+import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -100,14 +103,14 @@ public class MaximaClient implements ClientModInitializer {
         fileOutputStream.close();
     }
 
-    public void handleSetAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g) {
+    public void handleSetAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g, float i, float j) {
         if (MaximaClient.instance.isPlayback) {
             for (RecordingEntity entity : MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick)) {
                 if (entity.uuid.equals(livingEntity.getUuidAsString()) || UUID.fromString(entity.uuid).equals(livingEntity.getUuid())) {
                     loadAll(model, entity);
 
                     if (entity.isPlayer && entity.compMap.get("LEFT_LEG").comp.isEmpty()) {
-                        this.calculateAngles(livingEntity, model, leaningPitch, f, g);
+                        this.calculateAngles(livingEntity, model, leaningPitch, f, g, i, j);
                     }
                 }
             }
@@ -128,7 +131,7 @@ public class MaximaClient implements ClientModInitializer {
         entity.compMap.forEach((string, recordingPart) -> loadCompound(recordingPart.partFunction.apply(model), recordingPart.comp));
     }
 
-    private void calculateAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g) {
+    private void calculateAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g, float i, float j) {
         if (livingEntity.hasPlayerRider()) {
             model.rightLeg.pitch = -1.4137167F;
             model.rightLeg.yaw = 0.31415927F;
@@ -151,7 +154,7 @@ public class MaximaClient implements ClientModInitializer {
         }
 
         model.rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * g / k;
-        model.leftLeg.pitch = MathHelper.cos(f * 0.6662F + 3.1415927F) * 1.4F * g / k;
+        model.leftLeg.pitch = MathHelper.cos((float) (f * 0.6662F + Math.PI)) * 1.4F * g / k;
         model.rightLeg.yaw = 0.005F;
         model.leftLeg.yaw = -0.005F;
         model.rightLeg.roll = 0.005F;
@@ -173,6 +176,44 @@ public class MaximaClient implements ClientModInitializer {
             model.leftLeg.pitch = MathHelper.lerp(leaningPitch, model.leftLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F + 3.1415927F));
             model.rightLeg.pitch = MathHelper.lerp(leaningPitch, model.rightLeg.pitch, 0.3F * MathHelper.cos(f * 0.33333334F));
         }
+
+        ModelPart head = model.head;
+        ModelPart body = model.body;
+
+        boolean bl2 = livingEntity.isInSwimmingPose();
+        head.yaw = i * 0.017453292F;
+        if (bl) {
+            head.pitch = -0.7853982F;
+        } else if (leaningPitch > 0.0F) {
+            if (bl2) {
+                head.pitch = this.lerpAngle(leaningPitch, head.pitch, -0.7853982F);
+            } else {
+                head.pitch = this.lerpAngle(leaningPitch, head.pitch, j * 0.017453292F);
+            }
+        } else {
+            head.pitch = j * 0.017453292F;
+        }
+
+        body.yaw = 0.0F;
+
+        if (livingEntity.isSneaking()) {
+            body.pitch = 0.5F;
+        } else {
+            body.pitch = 0.0F;
+        }
+    }
+
+    protected float lerpAngle(float angleOne, float angleTwo, float magnitude) {
+        float f = (magnitude - angleTwo) % 6.2831855F;
+        if (f < -3.1415927F) {
+            f += 6.2831855F;
+        }
+
+        if (f >= 3.1415927F) {
+            f -= 6.2831855F;
+        }
+
+        return angleTwo + angleOne * f;
     }
 
     private void saveCompound(NbtCompound out, ModelPart part) {
