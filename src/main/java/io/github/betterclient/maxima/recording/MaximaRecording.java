@@ -1,6 +1,7 @@
 package io.github.betterclient.maxima.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
+import io.github.betterclient.maxima.recording.type.RecordWorldTime;
 import io.github.betterclient.maxima.recording.type.RecordingEntity;
 import io.github.betterclient.maxima.recording.type.RecordingParticle;
 import io.github.betterclient.maxima.recording.type.RecordingWorld;
@@ -26,9 +27,10 @@ public class MaximaRecording {
 
     public List<RecordingWorld> worlds = new ArrayList<>();
     public List<List<RecordingEntity>> entities = new ArrayList<>();
+    public List<List<RecordingParticle>> particlePackets = new ArrayList<>();
+    public List<RecordWorldTime> worldTimes = new ArrayList<>();
     public boolean shouldAddChunks = false;
     public int tickCount = 0;
-    public List<List<RecordingParticle>> particlePackets = new ArrayList<>();
 
     public MaximaRecording(boolean empty) {}
 
@@ -38,6 +40,7 @@ public class MaximaRecording {
         worlds.add(new RecordingWorld(this, true));
         entities.add(RecordingEntity.getCurrentList(MinecraftClient.getInstance().world));
         particlePackets.add(new ArrayList<>());
+        worldTimes.add(new RecordWorldTime(MinecraftClient.getInstance().world.getTimeOfDay()));
     }
 
     public static void load(MaximaRecording recording) {
@@ -62,6 +65,7 @@ public class MaximaRecording {
     }
 
     public void tick() {
+        worldTimes.add(new RecordWorldTime(MinecraftClient.getInstance().world.getTimeOfDay()));
         worlds.add(new RecordingWorld(this));
         particlePackets.add(new ArrayList<>());
         tickCount++;

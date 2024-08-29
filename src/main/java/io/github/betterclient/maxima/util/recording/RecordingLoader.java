@@ -2,6 +2,7 @@ package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.*;
+import io.github.betterclient.maxima.recording.type.RecordWorldTime;
 import io.github.betterclient.maxima.recording.type.RecordingEntity;
 import io.github.betterclient.maxima.recording.type.RecordingParticle;
 import io.github.betterclient.maxima.recording.type.RecordingWorld;
@@ -9,6 +10,7 @@ import io.github.betterclient.maxima.recording.util.ReadableChunkData;
 import net.minecraft.SharedConstants;
 import net.minecraft.util.math.ChunkPos;
 import org.jetbrains.annotations.NotNull;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,6 +39,7 @@ public class RecordingLoader {
             parseWorlds(f, recording);
             parseEntities(f, recording);
             parseParticles(f, recording);
+            parseWorldTimes(readAndClose(f.getInputStream(f.getEntry("worldtime.json"))), recording);
 
             f.close();
             LOGGER.info("Loaded {}!", file.getName().replace(".mxr", ""));
@@ -47,6 +50,20 @@ public class RecordingLoader {
         } catch (IOException e) {
             LOGGER.error("Failed parsing", e);
             return false;
+        }
+    }
+
+    private static void parseWorldTimes(byte[] data, MaximaRecording recording) {
+        JSONObject obj = new JSONObject(new String(data));
+        int maxTime = 0;
+        for (String s : obj.keySet()) {
+            if (Integer.parseInt(s) > maxTime) {
+                maxTime = Integer.parseInt(s);
+            }
+        }
+
+        for (int i = 0; i < maxTime; i++) {
+            recording.worldTimes.add(new RecordWorldTime(obj.getLong(i + "")));
         }
     }
 

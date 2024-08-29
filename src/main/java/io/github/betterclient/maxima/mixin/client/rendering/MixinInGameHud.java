@@ -24,7 +24,7 @@ public abstract class MixinInGameHud {
         }
 
         if(MaximaClient.instance.isSaving) {
-            context.drawText(this.getTextRenderer(), Text.translatable("text.saving", MaximaClient.instance.saveProgress + "%"), 2, context.getScaledWindowHeight() - 20, -1, true);
+            context.drawText(this.getTextRenderer(), Text.translatable("text.saving", MaximaClient.instance.saveProgress), 2, context.getScaledWindowHeight() - 20, -1, true);
         }
 
         if(MaximaClient.instance.isPlayback) {

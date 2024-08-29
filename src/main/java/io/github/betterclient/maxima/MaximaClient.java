@@ -20,7 +20,6 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.*;
 
-//TODO: World time tracking
 //TODO: Audio event tracking
 
 public class MaximaClient implements ClientModInitializer {
@@ -39,7 +38,7 @@ public class MaximaClient implements ClientModInitializer {
     public boolean isRecording = false;
     public boolean isSaving = false;
     public MaximaRecording recording;
-    public float saveProgress;
+    public String saveProgress;
     public boolean isWaitingForWorld = false;
     public boolean isPlayback;
     public boolean stopGeneration = false;

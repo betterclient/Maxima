@@ -8,6 +8,7 @@ import io.github.betterclient.maxima.util.TickTracker;
 import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.text.Text;
 import net.minecraft.util.Identifier;
 import net.minecraft.util.math.BlockPos;
@@ -159,6 +160,15 @@ public class RecordingRenderer {
                 context.drawTexture(Identifier.of("maxima", "textures/playingbutton.png"), 10, height - 115, 0, 0, 64, 64, 64, 64);
             }
             context.getMatrices().pop();
+
+            if (MaximaRecording.currentTick < loadedRecording.worldTimes.size()) {
+                long time = loadedRecording.worldTimes.get(MaximaRecording.currentTick).worldTime();
+                if (MinecraftClient.getInstance().world.getTimeOfDay() != time) {
+                    for (ServerWorld serverWorld : MinecraftClient.getInstance().getServer().getWorlds()) {
+                        serverWorld.setTimeOfDay(time);
+                    }
+                }
+            }
         }
 
         if (MaximaRecording.generatingWorld) {

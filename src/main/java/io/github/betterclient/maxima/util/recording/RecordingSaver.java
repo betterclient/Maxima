@@ -1,6 +1,7 @@
 package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
+import io.github.betterclient.maxima.recording.type.RecordWorldTime;
 import io.github.betterclient.maxima.recording.type.RecordingEntity;
 import io.github.betterclient.maxima.recording.type.RecordingParticle;
 import io.github.betterclient.maxima.recording.type.RecordingWorld;
@@ -12,6 +13,7 @@ import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.packet.s2c.play.ChunkData;
 import net.minecraft.util.math.ChunkPos;
+import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -39,6 +41,7 @@ public class RecordingSaver {
                 saveWorlds(zos);
                 saveEntities(zos);
                 saveParticles(zos);
+                saveWorldTimes(zos);
 
                 zos.putNextEntry(new ZipEntry("minecraft.version"));
                 zos.write(SharedConstants.getGameVersion().getName().getBytes());
@@ -51,6 +54,19 @@ public class RecordingSaver {
                 LOGGER.error(e);
             }
         }).start();
+    }
+
+    private static void saveWorldTimes(ZipOutputStream zos) throws IOException {
+        JSONObject obj = new JSONObject();
+        int time = 0;
+        for (RecordWorldTime worldTime : MaximaClient.instance.recording.worldTimes) {
+            obj.put(time + "", worldTime.worldTime());
+            time++;
+        }
+
+        zos.putNextEntry(new ZipEntry("worldtime.json"));
+        zos.write(obj.toString(2).getBytes());
+        zos.closeEntry();
     }
 
     private static void saveParticles(ZipOutputStream zos) throws IOException {
@@ -74,9 +90,13 @@ public class RecordingSaver {
 
     private static void saveEntities(ZipOutputStream zos) throws IOException {
         int count = 0;
+        int rec = 0;
+        MaximaClient.instance.saveProgress = rec + "/" + MaximaClient.instance.recording.entities.size() * MaximaClient.instance.recording.entities.getFirst().size();
         for (List<RecordingEntity> entity : MaximaClient.instance.recording.entities) {
             for (RecordingEntity recordingEntity : entity) {
+                rec++;
                 putEntity(zos, recordingEntity, count);
+                MaximaClient.instance.saveProgress = rec + "/" + MaximaClient.instance.recording.entities.size() * MaximaClient.instance.recording.entities.getFirst().size();
             }
 
             count++;
