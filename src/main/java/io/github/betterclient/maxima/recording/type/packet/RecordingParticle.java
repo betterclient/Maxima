@@ -1,6 +1,5 @@
-package io.github.betterclient.maxima.recording.type;
+package io.github.betterclient.maxima.recording.type.packet;
 
-import io.github.betterclient.maxima.util.access.ParticlePacketWriter;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.MinecraftClient;
@@ -13,7 +12,7 @@ public class RecordingParticle {
 
     public RecordingParticle(ParticleS2CPacket particle, DynamicRegistryManager regMan) {
         ByteBuf byteBuf = Unpooled.buffer();
-        ((ParticlePacketWriter) particle).maxima$writePacket(new RegistryByteBuf(byteBuf, regMan));
+        particle.write(new RegistryByteBuf(byteBuf, regMan));
         data = byteBuf.array();
         byteBuf.release();
     }

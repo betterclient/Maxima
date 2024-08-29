@@ -23,6 +23,7 @@
     "common.MixinChunkDataPacket",
     "common.MixinEntityList",
     "common.MixinParticleS2CPacket",
+    "common.MixinPlaySoundPacket",
     "common.MixinWorld",
     "server.MixinChunkData",
     "server.MixinMinecraftServer",

@@ -4,8 +4,9 @@ import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.*;
 import io.github.betterclient.maxima.recording.type.RecordWorldTime;
 import io.github.betterclient.maxima.recording.type.RecordingEntity;
-import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.packet.RecordingParticle;
 import io.github.betterclient.maxima.recording.type.RecordingWorld;
+import io.github.betterclient.maxima.recording.type.packet.RecordingSound;
 import io.github.betterclient.maxima.recording.util.ReadableChunkData;
 import net.minecraft.SharedConstants;
 import net.minecraft.util.math.ChunkPos;
@@ -39,6 +40,7 @@ public class RecordingLoader {
             parseWorlds(f, recording);
             parseEntities(f, recording);
             parseParticles(f, recording);
+            parseSounds(f, recording);
             parseWorldTimes(readAndClose(f.getInputStream(f.getEntry("worldtime.json"))), recording);
 
             f.close();
@@ -65,6 +67,44 @@ public class RecordingLoader {
         for (int i = 0; i < maxTime; i++) {
             recording.worldTimes.add(new RecordWorldTime(obj.getLong(i + "")));
         }
+    }
+
+    private static void parseSounds(ZipFile file, MaximaRecording recording) throws IOException {
+        var entriesPrior = file.entries();
+        int maxTick = 0;
+        while (entriesPrior.hasMoreElements()) {
+            ZipEntry entry = entriesPrior.nextElement();
+            String name = entry.getName();
+            if (!name.startsWith("sound/") || entry.isDirectory()) continue;
+
+            String trimmed = name.substring(name.indexOf("/") + 1, name.lastIndexOf("."));
+            String[] parts = trimmed.split("/");
+            int tick = Integer.parseInt(parts[0]);
+
+            if (tick > maxTick) {
+                maxTick = tick;
+            }
+        }
+
+        for (int i = -1; i < maxTick; i++) {
+            recording.soundPackets.add(new ArrayList<>());
+        }
+
+        var entries = file.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+
+            if (!entry.getName().startsWith("sound/") || entry.isDirectory()) continue;
+            byte[] data = readAndClose(file.getInputStream(entry));
+            parseSound(entry.getName(), data, recording);
+        }
+    }
+
+    private static void parseSound(String name, byte[] data, MaximaRecording recording) {
+        String trimmed = name.substring(name.indexOf("/") + 1, name.lastIndexOf("."));
+        String[] parts = trimmed.split("/");
+        int tick = Integer.parseInt(parts[0]);
+        recording.soundPackets.get(tick).add(new RecordingSound(data));
     }
 
     private static void parseParticles(ZipFile file, MaximaRecording recording) throws IOException {

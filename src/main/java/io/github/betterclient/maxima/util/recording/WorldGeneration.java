@@ -3,11 +3,13 @@ package io.github.betterclient.maxima.util.recording;
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.*;
 import io.github.betterclient.maxima.recording.type.RecordingEntity;
-import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.packet.RecordingParticle;
 import io.github.betterclient.maxima.recording.type.RecordingWorld;
+import io.github.betterclient.maxima.recording.type.packet.RecordingSound;
 import io.github.betterclient.maxima.recording.util.EntityInterpolation;
 import io.github.betterclient.maxima.recording.util.ReadableChunkData;
 import io.github.betterclient.maxima.ui.SelectTickScreen;
+import io.github.betterclient.maxima.util.TickTracker;
 import io.netty.buffer.Unpooled;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.Blocks;
@@ -205,7 +207,7 @@ public class WorldGeneration {
         generateEntities(MinecraftClient.getInstance().getServer().getOverworld());
 
         if (!MaximaRecording.isPaused)
-            generateParticles();
+            generateParticlesAndSounds();
 
         lastGenTick = MaximaRecording.currentTick;
         if (MaximaClient.instance.stopGeneration) return;
@@ -276,11 +278,20 @@ public class WorldGeneration {
         }
     }
 
-    private static void generateParticles() {
+    private static void generateParticlesAndSounds() {
         if (MaximaRecording.currentTick >= MaximaRecording.loadedRecording.particlePackets.size())
             return;
         for (RecordingParticle recordingParticle : MaximaRecording.loadedRecording.particlePackets.get(MaximaRecording.currentTick)) {
             MinecraftClient.getInstance().getNetworkHandler().onParticle(recordingParticle.create());
+        }
+
+        if (TickTracker.CURRENT_TRACKER != TickTracker.S1)
+            return;
+        if (MaximaRecording.currentTick >= MaximaRecording.loadedRecording.soundPackets.size())
+            return;
+
+        for (RecordingSound recordingSound : MaximaRecording.loadedRecording.soundPackets.get(MaximaRecording.currentTick)) {
+            MinecraftClient.getInstance().getNetworkHandler().onPlaySound(recordingSound.create());
         }
     }
 

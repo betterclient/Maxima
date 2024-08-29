@@ -1,6 +1,6 @@
 package io.github.betterclient.maxima.mixin.server;
 
-import io.github.betterclient.maxima.util.access.ChunkInvoker;
+import io.github.betterclient.maxima.util.ChunkInvoker;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;

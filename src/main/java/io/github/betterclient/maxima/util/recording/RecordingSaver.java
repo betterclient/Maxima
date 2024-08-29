@@ -3,9 +3,10 @@ package io.github.betterclient.maxima.util.recording;
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.type.RecordWorldTime;
 import io.github.betterclient.maxima.recording.type.RecordingEntity;
-import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.packet.RecordingParticle;
 import io.github.betterclient.maxima.recording.type.RecordingWorld;
-import io.github.betterclient.maxima.util.access.ChunkInvoker;
+import io.github.betterclient.maxima.recording.type.packet.RecordingSound;
+import io.github.betterclient.maxima.util.ChunkInvoker;
 import io.netty.buffer.Unpooled;
 import net.minecraft.SharedConstants;
 import net.minecraft.client.MinecraftClient;
@@ -41,6 +42,7 @@ public class RecordingSaver {
                 saveWorlds(zos);
                 saveEntities(zos);
                 saveParticles(zos);
+                saveSounds(zos);
                 saveWorldTimes(zos);
 
                 zos.putNextEntry(new ZipEntry("minecraft.version"));
@@ -84,6 +86,25 @@ public class RecordingSaver {
 
     private static void saveParticle(ZipOutputStream zos, RecordingParticle recordingParticle, int count, int count2) throws IOException {
         zos.putNextEntry(new ZipEntry("particle/" + count + "/" + count2 + ".particle"));
+        zos.write(recordingParticle.data);
+        zos.closeEntry();
+    }
+
+    private static void saveSounds(ZipOutputStream zos) throws IOException {
+        int count = 0;
+        for (List<RecordingSound> particlePacket : MaximaClient.instance.recording.soundPackets) {
+            int count2 = 0;
+            for (RecordingSound recordingSound : particlePacket) {
+                saveSound(zos, recordingSound, count, count2);
+                count2++;
+            }
+
+            count++;
+        }
+    }
+
+    private static void saveSound(ZipOutputStream zos, RecordingSound recordingParticle, int count, int count2) throws IOException {
+        zos.putNextEntry(new ZipEntry("sound/" + count + "/" + count2 + ".packet"));
         zos.write(recordingParticle.data);
         zos.closeEntry();
     }

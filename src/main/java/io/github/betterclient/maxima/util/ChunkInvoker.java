@@ -1,4 +1,4 @@
-package io.github.betterclient.maxima.util.access;
+package io.github.betterclient.maxima.util;
 
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.RegistryByteBuf;
