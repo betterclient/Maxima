@@ -25,6 +25,9 @@
   "custom": {
     "modmenu": {
       "update_checker": false
+    },
+    "lithium:options": {
+      "mixin.collections.entity_ticking": false
     }
   }
 }
