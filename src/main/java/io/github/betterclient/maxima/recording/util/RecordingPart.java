@@ -1,4 +1,4 @@
-package io.github.betterclient.maxima.recording;
+package io.github.betterclient.maxima.recording.util;
 
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;

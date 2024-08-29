@@ -2,6 +2,11 @@ package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.*;
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
+import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.RecordingWorld;
+import io.github.betterclient.maxima.recording.util.EntityInterpolation;
+import io.github.betterclient.maxima.recording.util.ReadableChunkData;
 import io.github.betterclient.maxima.ui.SelectTickScreen;
 import io.netty.buffer.Unpooled;
 import net.minecraft.block.BlockState;
@@ -13,6 +18,8 @@ import net.minecraft.client.world.GeneratorOptionsHolder;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
+import net.minecraft.network.packet.s2c.play.ChunkData;
 import net.minecraft.server.world.ServerWorld;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.ChunkPos;
@@ -25,6 +32,7 @@ import net.minecraft.world.gen.WorldPresets;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class WorldGeneration {
     private static Set<String> LAST_GEN_UUIDS = new HashSet<>();
@@ -196,6 +204,9 @@ public class WorldGeneration {
 
         generateEntities(MinecraftClient.getInstance().getServer().getOverworld());
 
+        if (!MaximaRecording.isPaused)
+            generateParticles();
+
         lastGenTick = MaximaRecording.currentTick;
         if (MaximaClient.instance.stopGeneration) return;
         List<ChunkPos> chunks = new ArrayList<>(rd.keySet());
@@ -207,8 +218,10 @@ public class WorldGeneration {
 
             PacketByteBuf chunkData = new PacketByteBuf(Unpooled.wrappedBuffer(readData.chunkData));
             PacketByteBuf heightmap = new PacketByteBuf(Unpooled.wrappedBuffer(readData.heightmap));
+            RegistryByteBuf blockEntities = new RegistryByteBuf(Unpooled.wrappedBuffer(readData.blockEntities), MinecraftClient.getInstance().world.getRegistryManager());
+            List<ChunkData.BlockEntityData> bes = ChunkData.BlockEntityData.LIST_PACKET_CODEC.decode(blockEntities);
 
-            MinecraftClient.getInstance().world.getChunkManager().loadChunkFromPacket(pos.x, pos.z, chunkData, heightmap.readNbt(), blockEntityVisitor -> {});
+            MinecraftClient.getInstance().world.getChunkManager().loadChunkFromPacket(pos.x, pos.z, chunkData, heightmap.readNbt(), getBlockEntities(pos.x, pos.z, bes));
 
             if (timeTick % 5 == 0) {
                 int px = pos.x * 16;
@@ -246,6 +259,31 @@ public class WorldGeneration {
         timeTick++;
     }
 
+    public static Consumer<ChunkData.BlockEntityVisitor> getBlockEntities(int x, int z, List<ChunkData.BlockEntityData> bes) {
+        return (visitor) -> iterateBlockEntities(visitor, x, z, bes);
+    }
+
+    private static void iterateBlockEntities(ChunkData.BlockEntityVisitor consumer, int x, int z, List<ChunkData.BlockEntityData> blockEntities) {
+        int i = 16 * x;
+        int j = 16 * z;
+        BlockPos.Mutable mutable = new BlockPos.Mutable();
+
+        for (ChunkData.BlockEntityData blockEntityData : blockEntities) {
+            int k = i + ChunkSectionPos.getLocalCoord(blockEntityData.localXz >> 4);
+            int l = j + ChunkSectionPos.getLocalCoord(blockEntityData.localXz);
+            mutable.set(k, blockEntityData.y, l);
+            consumer.accept(mutable, blockEntityData.type, blockEntityData.nbt);
+        }
+    }
+
+    private static void generateParticles() {
+        if (MaximaRecording.currentTick >= MaximaRecording.loadedRecording.particlePackets.size())
+            return;
+        for (RecordingParticle recordingParticle : MaximaRecording.loadedRecording.particlePackets.get(MaximaRecording.currentTick)) {
+            MinecraftClient.getInstance().getNetworkHandler().onParticle(recordingParticle.create());
+        }
+    }
+
     private static void update(BlockPos blockPos) {
         BlockState previous = MinecraftClient.getInstance().world.getBlockState(blockPos);
         MinecraftClient.getInstance().world.setBlockState(blockPos, Blocks.TORCH.getDefaultState());
@@ -253,7 +291,12 @@ public class WorldGeneration {
     }
 
     public static Map<ChunkPos, ReadableChunkData> mergeUpto(int currentTick) {
-        HashMap<ChunkPos, ReadableChunkData> chunkDataHashMap = new HashMap<>(MaximaRecording.loadedRecording.worlds.getFirst().readData);
+        int start = 0;
+        if (lastGenTick < currentTick) {
+            start = lastGenTick;
+        }
+
+        HashMap<ChunkPos, ReadableChunkData> chunkDataHashMap = new HashMap<>(MaximaRecording.loadedRecording.worlds.get(start).readData);
         if (currentTick == 0) return chunkDataHashMap;
 
         for (RecordingWorld recordingWorld : MaximaRecording.loadedRecording.worlds.subList(1, currentTick)) {

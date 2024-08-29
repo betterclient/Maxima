@@ -11,5 +11,6 @@
   "key.maxima_gotick": "Go to Tick",
   "key.categories.maxima_keys": "Maxima Playback Keys",
   "text.interpolation": "Entity FPS",
-  "text.off": "Disabled"
+  "text.off": "Disabled",
+  "text.failedparse": "Failed to parse recording, (broken file or wrong minecraft version?)"
 }

@@ -1,6 +1,7 @@
 package io.github.betterclient.maxima.mixin.client.rendering;
 
 import io.github.betterclient.maxima.MaximaClient;
+import io.github.betterclient.maxima.recording.MaximaRecording;
 import io.github.betterclient.maxima.ui.RecordingRenderer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
@@ -61,6 +62,7 @@ public class MixinGameMenuScreen {
             MaximaClient.instance.isPlayback = false;
             RecordingRenderer.isFirst = true;
             RecordingRenderer.firstGen = true;
+            MaximaRecording.currentTick = 0;
         }
     }
 }

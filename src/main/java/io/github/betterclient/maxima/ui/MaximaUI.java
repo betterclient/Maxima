@@ -1,7 +1,9 @@
 package io.github.betterclient.maxima.ui;
 
 import io.github.betterclient.maxima.util.recording.RecordingLoader;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
+import net.minecraft.client.gui.screen.MessageScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.widget.ButtonWidget;
 import net.minecraft.text.Text;
@@ -20,7 +22,9 @@ public class MaximaUI extends Screen {
         selectionWidget = this.addDrawableChild(new MaximaSelectionWidget(this.width, this.height - 110, 40, 30));
         this.addDrawableChild(ButtonWidget.builder(Text.translatable("text.join"), button -> {
             if(selectionWidget.getFocused() != null) {
-                RecordingLoader.loadRecording(selectionWidget.getFocused().file);
+                if (!RecordingLoader.loadRecording(selectionWidget.getFocused().file)) {
+                    MinecraftClient.getInstance().setScreen(new MessageScreen(Text.translatable("text.failedparse")));
+                }
             }
         }).dimensions(width / 2 - 110, height - 30, 100, 20).build());
 

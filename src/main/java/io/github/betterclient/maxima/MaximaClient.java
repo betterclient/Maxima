@@ -1,17 +1,14 @@
 package io.github.betterclient.maxima;
 
 import io.github.betterclient.maxima.recording.MaximaRecording;
-import io.github.betterclient.maxima.recording.RecordingEntity;
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.model.ModelPart;
 import net.minecraft.client.render.entity.model.BipedEntityModel;
-import net.minecraft.client.render.entity.model.CrossbowPosing;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.nbt.NbtCompound;
-import net.minecraft.util.Arm;
-import net.minecraft.util.Hand;
 import net.minecraft.util.math.MathHelper;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -22,6 +19,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.*;
+
+//TODO: World time tracking
+//TODO: Audio event tracking
 
 public class MaximaClient implements ClientModInitializer {
     public static int OP_key = GLFW.GLFW_KEY_F4;
@@ -153,8 +153,8 @@ public class MaximaClient implements ClientModInitializer {
             k = 1.0F;
         }
 
-        model.rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * g / k;
-        model.leftLeg.pitch = MathHelper.cos((float) (f * 0.6662F + Math.PI)) * 1.4F * g / k;
+        model.rightLeg.pitch = MathHelper.cos(f * 0.6662F) * 1.4F * .1f / k;
+        model.leftLeg.pitch = MathHelper.cos((float) (f * 0.6662F + Math.PI)) * 1.4F * .1f / k;
         model.rightLeg.yaw = 0.005F;
         model.leftLeg.yaw = -0.005F;
         model.rightLeg.roll = 0.005F;
@@ -196,10 +196,43 @@ public class MaximaClient implements ClientModInitializer {
 
         body.yaw = 0.0F;
 
-        if (livingEntity.isSneaking()) {
-            body.pitch = 0.5F;
+        boolean found = false;
+        for (RecordingEntity recordingEntity : MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick)) {
+            if (recordingEntity.uuid.equals(livingEntity.getUuidAsString())) {
+                try {
+                    if (recordingEntity.generate().getBoolean("SNEAKING")) {
+                        found = true;
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        if (!found) {
+            model.body.pitch = 0.0F;
+            model.rightLeg.pivotZ = 0.0F;
+            model.leftLeg.pivotZ = 0.0F;
+            model.rightLeg.pivotY = 12.0F;
+            model.leftLeg.pivotY = 12.0F;
+            model.head.pivotY = 0.0F;
+            model.body.pivotY = 0.0F;
+            model.leftArm.pivotY = 2.0F;
+            model.rightArm.pivotY = 2.0F;
         } else {
-            body.pitch = 0.0F;
+            model.body.pitch = 0.5F;
+            ModelPart var10000 = model.rightArm;
+            var10000.pitch += 0.4F;
+            var10000 = model.leftArm;
+            var10000.pitch += 0.4F;
+            model.rightLeg.pivotZ = 4.0F;
+            model.leftLeg.pivotZ = 4.0F;
+            model.rightLeg.pivotY = 12.2F;
+            model.leftLeg.pivotY = 12.2F;
+            model.head.pivotY = 4.2F;
+            model.body.pivotY = 3.2F;
+            model.leftArm.pivotY = 5.2F;
+            model.rightArm.pivotY = 5.2F;
         }
     }
 

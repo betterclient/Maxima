@@ -40,7 +40,7 @@ public class ModMenu implements ModMenuApi {
             ConfigCategory category = builder.getOrCreateCategory(Text.translatable("text.cloth-config.config"));
             ConfigEntryBuilder entryBuilder = builder.entryBuilder();
 
-            category.addEntry(entryBuilder.startIntSlider(Text.translatable("text.interpolation"), MaximaClient.OP_interpolationTick, 0, 25).setDefaultValue(MaximaClient.OP_interpolationTick).setSaveConsumer(integer -> MaximaClient.OP_interpolationTick = integer).build().setTextGetter(integer -> integer == 0 ? Text.translatable("text.off") : Text.literal(integer * 20 + " FPS")));
+            category.addEntry(entryBuilder.startIntSlider(Text.translatable("text.interpolation"), MaximaClient.OP_interpolationTick, 0, 50).setDefaultValue(MaximaClient.OP_interpolationTick).setSaveConsumer(integer -> MaximaClient.OP_interpolationTick = integer).build().setTextGetter(integer -> integer == 0 ? Text.translatable("text.off") : Text.literal(integer * 20 + " FPS")));
             category.addEntry(entryBuilder.fillKeybindingField(Text.translatable(MaximaKeyBinding.instance.getTranslationKey()), MaximaKeyBinding.instance).build());
             category.addEntry(entryBuilder.fillKeybindingField(Text.translatable(GoToTickBind.instance.getTranslationKey()), GoToTickBind.instance).build());
 

@@ -1,4 +1,4 @@
-package io.github.betterclient.maxima.util;
+package io.github.betterclient.maxima.util.fake;
 
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.NetworkSide;

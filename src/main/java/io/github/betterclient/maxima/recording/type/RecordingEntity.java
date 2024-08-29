@@ -1,8 +1,9 @@
-package io.github.betterclient.maxima.recording;
+package io.github.betterclient.maxima.recording.type;
 
 import com.mojang.authlib.GameProfile;
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.util.FakeNetworkHandler;
+import io.github.betterclient.maxima.recording.util.RecordingPart;
+import io.github.betterclient.maxima.util.fake.FakeNetworkHandler;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.OtherClientPlayerEntity;
 import net.minecraft.entity.Entity;
@@ -53,6 +54,9 @@ public class RecordingEntity {
             comp.putFloat("LIMB_ANIMATOR_POS", pe.limbAnimator.pos);
         }
 
+        comp.putBoolean("SPRINTING", entity.isSprinting());
+        comp.putBoolean("SNEAKING", entity.isSneaking());
+        comp.putBoolean("IS_ON_FIRE", entity.isOnFire());
         comp.putFloat("HEAD_YAW", entity.getHeadYaw());
         comp.putFloat("BODY_YAW", entity.getBodyYaw());
 
@@ -118,6 +122,11 @@ public class RecordingEntity {
 
         entity.setHeadYaw(comp.getFloat("HEAD_YAW"));
         entity.setBodyYaw(comp.getFloat("BODY_YAW"));
+
+        entity.setSprinting(comp.getBoolean("SPRINTING"));
+        entity.setSneaking(comp.getBoolean("SNEAKING"));
+
+        entity.setOnFire(comp.getBoolean("IS_ON_FIRE"));
 
         entity.setUuid(UUID.fromString(this.uuid));
     }

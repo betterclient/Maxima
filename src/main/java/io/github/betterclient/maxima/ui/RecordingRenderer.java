@@ -3,7 +3,7 @@ package io.github.betterclient.maxima.ui;
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.keybinds.GoToTickBind;
 import io.github.betterclient.maxima.recording.MaximaRecording;
-import io.github.betterclient.maxima.recording.RecordingEntity;
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
 import io.github.betterclient.maxima.util.TickTracker;
 import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import net.minecraft.client.MinecraftClient;
@@ -62,7 +62,7 @@ public class RecordingRenderer {
                 }
             }, 2000L);
 
-            MaximaRecording.isPaused = true;
+            MaximaRecording.setPaused(true);
             isFirst = false;
             MaximaRecording.lastPauseTime = 0;
         }
@@ -91,7 +91,7 @@ public class RecordingRenderer {
 
                 if (MaximaRecording.currentTick >= loadedRecording.tickCount) {
                     MaximaRecording.currentTick = loadedRecording.tickCount;
-                    MaximaRecording.isPaused = true;
+                    MaximaRecording.setPaused(true);
                     return;
                 }
 

@@ -2,6 +2,11 @@ package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.*;
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
+import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.RecordingWorld;
+import io.github.betterclient.maxima.recording.util.ReadableChunkData;
+import net.minecraft.SharedConstants;
 import net.minecraft.util.math.ChunkPos;
 import org.jetbrains.annotations.NotNull;
 
@@ -17,23 +22,70 @@ import java.util.zip.ZipFile;
 import static io.github.betterclient.maxima.MaximaClient.LOGGER;
 
 public class RecordingLoader {
-    public static void loadRecording(File file) {
+    public static boolean loadRecording(File file) {
         MaximaClient.instance.isPlayback = true;
         try {
             MaximaRecording recording = new MaximaRecording(true);
             ZipFile f = new ZipFile(file);
 
+            String version = new String(readAndClose(f.getInputStream(f.getEntry("minecraft.version"))));
+            if (!version.equals(SharedConstants.getGameVersion().getName())) {
+                LOGGER.warn("Unsupported recording (minecraft version {} ≠ {})", version, SharedConstants.getGameVersion().getName());
+                return false;
+            }
+
             parseWorlds(f, recording);
             parseEntities(f, recording);
+            parseParticles(f, recording);
 
             f.close();
             LOGGER.info("Loaded {}!", file.getName().replace(".mxr", ""));
             LOGGER.info("Creating world!");
 
             MaximaRecording.load(recording);
+            return true;
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            LOGGER.error("Failed parsing", e);
+            return false;
         }
+    }
+
+    private static void parseParticles(ZipFile file, MaximaRecording recording) throws IOException {
+        var entriesPrior = file.entries();
+        int maxTick = 0;
+        while (entriesPrior.hasMoreElements()) {
+            ZipEntry entry = entriesPrior.nextElement();
+            String name = entry.getName();
+            if (!name.startsWith("particle/") || entry.isDirectory()) continue;
+
+            String trimmed = name.substring(name.indexOf("/") + 1, name.lastIndexOf("."));
+            String[] parts = trimmed.split("/");
+            int tick = Integer.parseInt(parts[0]);
+
+            if (tick > maxTick) {
+                maxTick = tick;
+            }
+        }
+
+        for (int i = -1; i < maxTick; i++) {
+            recording.particlePackets.add(new ArrayList<>());
+        }
+
+        var entries = file.entries();
+        while (entries.hasMoreElements()) {
+            ZipEntry entry = entries.nextElement();
+
+            if (!entry.getName().startsWith("particle/") || entry.isDirectory()) continue;
+            byte[] data = readAndClose(file.getInputStream(entry));
+            parseParticle(entry.getName(), data, recording);
+        }
+    }
+
+    private static void parseParticle(String name, byte[] data, MaximaRecording recording) {
+        String trimmed = name.substring(name.indexOf("/") + 1, name.lastIndexOf("."));
+        String[] parts = trimmed.split("/");
+        int tick = Integer.parseInt(parts[0]);
+        recording.particlePackets.get(tick).add(new RecordingParticle(data));
     }
 
     private static void parseEntities(ZipFile file, MaximaRecording recording) throws IOException {
@@ -117,6 +169,8 @@ public class RecordingLoader {
             recording.worlds.get(count).readData.computeIfAbsent(new ChunkPos(x, z), chunkPos -> new ReadableChunkData()).chunkData = data;
         } else if(name.endsWith(".heightmap")) {
             recording.worlds.get(count).readData.computeIfAbsent(new ChunkPos(x, z), chunkPos -> new ReadableChunkData()).heightmap = data;
+        } else if(name.endsWith(".blockEntity")) {
+            recording.worlds.get(count).readData.computeIfAbsent(new ChunkPos(x, z), chunkPos -> new ReadableChunkData()).blockEntities = data;
         }
     }
 

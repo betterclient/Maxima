@@ -1,5 +1,7 @@
-package io.github.betterclient.maxima.recording;
+package io.github.betterclient.maxima.recording.type;
 
+import io.github.betterclient.maxima.recording.MaximaRecording;
+import io.github.betterclient.maxima.recording.util.ReadableChunkData;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.world.ClientChunkManager;
 import net.minecraft.network.packet.s2c.play.ChunkData;

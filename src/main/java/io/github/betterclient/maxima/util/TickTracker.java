@@ -3,11 +3,12 @@ package io.github.betterclient.maxima.util;
 import io.github.betterclient.maxima.MaximaClient;
 
 public enum TickTracker {
-    S05(100, 0.5f),
-    S1(50, 1f),
-    S2(25, 2f);
+    S05(10, 100, 2f),
+    S1(20, 50, 1f),
+    S2(40, 25, 0.5f);
 
-    TickTracker(int amountTicks, float interpolationAmount) {
+    TickTracker(int tickRate, int amountTicks, float interpolationAmount) {
+        this.tickRate = tickRate;
         this.amountTicks = amountTicks;
         this.lastTick = System.currentTimeMillis();
         this.interpolationAmount = interpolationAmount;
@@ -59,6 +60,7 @@ public enum TickTracker {
     public static TickTracker CURRENT_TRACKER = S1;
 
     private long lastTick;
+    public final int tickRate;
     public final int amountTicks;
     public final float interpolationAmount;
     public final int interpolationTickTime;

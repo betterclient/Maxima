@@ -1,5 +1,6 @@
-package io.github.betterclient.maxima.recording;
+package io.github.betterclient.maxima.recording.util;
 
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
 import net.minecraft.nbt.*;
 
 import java.io.IOException;

@@ -1,7 +1,11 @@
 package io.github.betterclient.maxima.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
+import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.RecordingWorld;
 import io.github.betterclient.maxima.ui.RecordingRenderer;
+import io.github.betterclient.maxima.util.TickTracker;
 import io.github.betterclient.maxima.util.recording.WorldGeneration;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
@@ -24,6 +28,7 @@ public class MaximaRecording {
     public List<List<RecordingEntity>> entities = new ArrayList<>();
     public boolean shouldAddChunks = false;
     public int tickCount = 0;
+    public List<List<RecordingParticle>> particlePackets = new ArrayList<>();
 
     public MaximaRecording(boolean empty) {}
 
@@ -32,6 +37,7 @@ public class MaximaRecording {
 
         worlds.add(new RecordingWorld(this, true));
         entities.add(RecordingEntity.getCurrentList(MinecraftClient.getInstance().world));
+        particlePackets.add(new ArrayList<>());
     }
 
     public static void load(MaximaRecording recording) {
@@ -46,8 +52,18 @@ public class MaximaRecording {
         WorldGeneration.generate();
     }
 
+    public static void setPaused(boolean b) {
+        isPaused = b;
+        MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("tick " + (b ? "" : "un") + "freeze");
+
+        if (!b) {
+            MinecraftClient.getInstance().getNetworkHandler().sendChatCommand("tick rate " + TickTracker.CURRENT_TRACKER.tickRate);
+        }
+    }
+
     public void tick() {
         worlds.add(new RecordingWorld(this));
+        particlePackets.add(new ArrayList<>());
         tickCount++;
         shouldAddChunks = true;
     }

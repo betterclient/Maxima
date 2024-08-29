@@ -1,11 +1,15 @@
 package io.github.betterclient.maxima.util.recording;
 
 import io.github.betterclient.maxima.MaximaClient;
-import io.github.betterclient.maxima.recording.RecordingEntity;
-import io.github.betterclient.maxima.recording.RecordingWorld;
-import io.github.betterclient.maxima.util.ChunkInvoker;
+import io.github.betterclient.maxima.recording.type.RecordingEntity;
+import io.github.betterclient.maxima.recording.type.RecordingParticle;
+import io.github.betterclient.maxima.recording.type.RecordingWorld;
+import io.github.betterclient.maxima.util.access.ChunkInvoker;
 import io.netty.buffer.Unpooled;
+import net.minecraft.SharedConstants;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.RegistryByteBuf;
 import net.minecraft.network.packet.s2c.play.ChunkData;
 import net.minecraft.util.math.ChunkPos;
 
@@ -34,6 +38,11 @@ public class RecordingSaver {
 
                 saveWorlds(zos);
                 saveEntities(zos);
+                saveParticles(zos);
+
+                zos.putNextEntry(new ZipEntry("minecraft.version"));
+                zos.write(SharedConstants.getGameVersion().getName().getBytes());
+                zos.closeEntry();
 
                 zos.close();
                 LOGGER.info("Saved to: \"{}\"!", fileName);
@@ -42,6 +51,25 @@ public class RecordingSaver {
                 LOGGER.error(e);
             }
         }).start();
+    }
+
+    private static void saveParticles(ZipOutputStream zos) throws IOException {
+        int count = 0;
+        for (List<RecordingParticle> particlePacket : MaximaClient.instance.recording.particlePackets) {
+            int count2 = 0;
+            for (RecordingParticle recordingParticle : particlePacket) {
+                saveParticle(zos, recordingParticle, count, count2);
+                count2++;
+            }
+
+            count++;
+        }
+    }
+
+    private static void saveParticle(ZipOutputStream zos, RecordingParticle recordingParticle, int count, int count2) throws IOException {
+        zos.putNextEntry(new ZipEntry("particle/" + count + "/" + count2 + ".particle"));
+        zos.write(recordingParticle.data);
+        zos.closeEntry();
     }
 
     private static void saveEntities(ZipOutputStream zos) throws IOException {
@@ -91,6 +119,13 @@ public class RecordingSaver {
             zos.write(pbb.array());
             zos.closeEntry();
             pbb.release();
+
+            RegistryByteBuf rbb = new RegistryByteBuf(Unpooled.buffer(), MinecraftClient.getInstance().world.getRegistryManager());
+            ((ChunkInvoker)chunkData).maxima$writeBlockEntities(rbb);
+            zos.putNextEntry(new ZipEntry("block/" + tc + "/" + chunkPos.x + "," + chunkPos.z + ".blockEntity"));
+            zos.write(rbb.array());
+            zos.closeEntry();
+            rbb.release();
         }
     }
 }

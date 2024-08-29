@@ -1,4 +1,4 @@
-package io.github.betterclient.maxima.mixin.server;
+package io.github.betterclient.maxima.mixin.common;
 
 import io.github.betterclient.maxima.MaximaClient;
 import io.github.betterclient.maxima.recording.MaximaRecording;

@@ -20,9 +20,13 @@
   "mixins": [
     "MixinInt2ObjectOpenHashMap_MapIterator",
     "MixinLongOpenHashSet_SetIterator",
+    "common.MixinChunkDataPacket",
+    "common.MixinEntityList",
+    "common.MixinParticleS2CPacket",
+    "common.MixinWorld",
     "server.MixinChunkData",
-    "server.MixinChunkDataPacket",
     "server.MixinMinecraftServer",
+    "server.MixinServerChunkManager",
     "server.MixinServerEntityManager"
   ]
 }

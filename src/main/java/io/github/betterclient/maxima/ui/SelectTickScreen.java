@@ -47,11 +47,11 @@ public class SelectTickScreen extends Screen {
             currentTick = tickCount;
             MaximaRecording.generateWorld();
             isHold = true;
-            isPaused = true;
+            setPaused(true);
         }
         if (button == 0 && basicCollisionCheck(mouseX, mouseY, 10, height - 115, 26, height - 99)) {
             synchronized (new Object()) {
-                isPaused = !isPaused;
+                setPaused(!isPaused);
                 TickTracker.CURRENT_TRACKER.setLastTick();
             }
 
@@ -96,9 +96,9 @@ public class SelectTickScreen extends Screen {
         this.addDrawableChild(b1);
         this.addDrawableChild(b2);
 
-        switch ((int) (TickTracker.CURRENT_TRACKER.interpolationAmount * 10)) {
-            case 5 -> update(b05);
-            case 20 -> update(b2);
+        switch (TickTracker.CURRENT_TRACKER.amountTicks) {
+            case 100 -> update(b05);
+            case 25 -> update(b2);
             default -> update(b1);
         }
     }
