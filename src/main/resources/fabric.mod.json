@@ -21,7 +21,7 @@
     "modmenu": "*"
   },
   "accessWidener": "maxima.accesswidener",
-
+  "icon": "logo.png",
   "custom": {
     "modmenu": {
       "update_checker": false
