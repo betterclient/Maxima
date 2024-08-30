@@ -171,7 +171,7 @@ public class RecordingLoader {
         entity.isPlayer = name.endsWith("P");
 
         if (entity.isPlayer) {
-            Pattern pattern = Pattern.compile("\\d+");
+            Pattern pattern = Pattern.compile("\\d");
             entity.uuid = getBuffer(pattern, entity).toString();
             entity.updateUUID();
         }
@@ -185,7 +185,7 @@ public class RecordingLoader {
         while (matcher.find()) {
             String match = matcher.group();
             if (match.length() > 1) {
-                continue;
+                matcher.appendReplacement(sb, match);
             }
 
             int number = Integer.parseInt(match);
