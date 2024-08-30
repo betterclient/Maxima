@@ -184,6 +184,10 @@ public class RecordingLoader {
 
         while (matcher.find()) {
             String match = matcher.group();
+            if (match.length() > 1) {
+                continue;
+            }
+
             int number = Integer.parseInt(match);
 
             // Increment the number, and wrap around if it is 9
