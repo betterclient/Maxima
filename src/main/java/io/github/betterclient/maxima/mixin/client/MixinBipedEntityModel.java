@@ -14,6 +14,6 @@ public class MixinBipedEntityModel {
 
     @Inject(method = "setAngles(Lnet/minecraft/entity/LivingEntity;FFFFF)V", at = @At("RETURN"))
     public void onSetAngles(LivingEntity livingEntity, float f, float g, float h, float i, float j, CallbackInfo ci) {
-        MaximaClient.instance.handleSetAngles(livingEntity, ((BipedEntityModel<?>)(Object)this), this.leaningPitch, f, g, i, j);
+        MaximaClient.instance.handleSetAngles(livingEntity, ((BipedEntityModel<?>)(Object)this), this.leaningPitch, f, i, j);
     }
 }

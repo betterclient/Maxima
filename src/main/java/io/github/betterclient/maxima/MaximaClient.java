@@ -20,7 +20,8 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.util.*;
 
-//TODO: Audio event tracking
+//TODO: Fix naked player issue
+//TODO: Record LightData along with .heightmap .data .blockEntity
 
 public class MaximaClient implements ClientModInitializer {
     public static int OP_key = GLFW.GLFW_KEY_F4;
@@ -102,14 +103,14 @@ public class MaximaClient implements ClientModInitializer {
         fileOutputStream.close();
     }
 
-    public void handleSetAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g, float i, float j) {
+    public void handleSetAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float i, float j) {
         if (MaximaClient.instance.isPlayback) {
             for (RecordingEntity entity : MaximaRecording.loadedRecording.entities.get(MaximaRecording.currentTick)) {
                 if (entity.uuid.equals(livingEntity.getUuidAsString()) || UUID.fromString(entity.uuid).equals(livingEntity.getUuid())) {
                     loadAll(model, entity);
 
                     if (entity.isPlayer && entity.compMap.get("LEFT_LEG").comp.isEmpty()) {
-                        this.calculateAngles(livingEntity, model, leaningPitch, f, g, i, j);
+                        this.calculateAngles(livingEntity, model, leaningPitch, f, i, j);
                     }
                 }
             }
@@ -130,7 +131,7 @@ public class MaximaClient implements ClientModInitializer {
         entity.compMap.forEach((string, recordingPart) -> loadCompound(recordingPart.partFunction.apply(model), recordingPart.comp));
     }
 
-    private void calculateAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float g, float i, float j) {
+    private void calculateAngles(LivingEntity livingEntity, BipedEntityModel<?> model, float leaningPitch, float f, float i, float j) {
         if (livingEntity.hasPlayerRider()) {
             model.rightLeg.pitch = -1.4137167F;
             model.rightLeg.yaw = 0.31415927F;
